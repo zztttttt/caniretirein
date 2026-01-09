@@ -1,0 +1,2703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Tracker - Can I Retire In?</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #eef4ff 0%, #f7fbff 100%);
+            --bg-secondary: white;
+            --bg-card: white;
+            --bg-header: linear-gradient(135deg, #f5f9ff 0%, #e4efff 100%);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-header: #1a3760;
+            --text-link: #2a6599;
+            --border-color: #e0e0e0;
+            --input-bg: #fafafa;
+            --shadow: rgba(0,0,0,0.1);
+            --shadow-light: rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-secondary: #0f1419;
+            --bg-card: #1e293b;
+            --bg-header: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-header: #e2e8f0;
+            --text-link: #60a5fa;
+            --border-color: #334155;
+            --input-bg: #1e293b;
+            --shadow: rgba(0,0,0,0.3);
+            --shadow-light: rgba(0,0,0,0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .page-header {
+            background: var(--bg-header);
+            color: var(--text-header);
+            padding: 32px 20px;
+            text-align: center;
+            box-shadow: 0 2px 12px var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            width: 50px;
+            height: 26px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--text-link);
+        }
+
+        .theme-toggle-slider {
+            width: 20px;
+            height: 20px;
+            background: var(--text-link);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            transform: translateX(0);
+        }
+
+        [data-theme="dark"] .theme-toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .theme-toggle-icon {
+            position: absolute;
+            font-size: 14px;
+            transition: opacity 0.3s ease;
+            color: var(--text-link);
+        }
+
+        .theme-toggle-icon.sun {
+            left: 6px;
+            opacity: 1;
+        }
+
+        .theme-toggle-icon.moon {
+            right: 6px;
+            opacity: 0;
+        }
+
+        [data-theme="dark"] .theme-toggle-icon.sun {
+            opacity: 0;
+        }
+
+        [data-theme="dark"] .theme-toggle-icon.moon {
+            opacity: 1;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        .page-header .tagline {
+            margin: 10px 0 0;
+            font-size: 17px;
+            opacity: 0.9;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .nav-links {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            background: rgba(96, 165, 250, 0.1);
+            color: var(--text-link);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(96, 165, 250, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .page-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .tracker-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .input-cards-container {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            gap: 24px;
+            flex-wrap: nowrap;
+            margin: 0 0 30px;
+            width: 100%;
+        }
+
+        .input-cards-container .card {
+            flex: 1 1 0;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        @media (max-width: 1200px) {
+            .input-cards-container {
+                flex-wrap: wrap;
+            }
+        }
+
+        .progress-bar-container {
+            margin: 15px 0;
+        }
+
+        .progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .progress-bar-fill.warning {
+            background: linear-gradient(90deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .progress-bar-fill.danger {
+            background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .budget-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s ease;
+        }
+
+        .budget-item:last-child {
+            border-bottom: none;
+        }
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .budget-category {
+            font-weight: 600;
+            color: var(--text-link);
+            text-transform: capitalize;
+            transition: color 0.3s ease;
+        }
+
+        .budget-amount {
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .goal-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s ease;
+        }
+
+        .goal-item:last-child {
+            border-bottom: none;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .goal-name {
+            font-weight: 600;
+            color: var(--text-link);
+            transition: color 0.3s ease;
+        }
+
+        .goal-amount {
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px var(--shadow), 0 2px 8px var(--shadow-light);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px var(--shadow), 0 4px 12px var(--shadow-light);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-link);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+            accent-color: #2a6599;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2a6599;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 101, 153, 0.1);
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #2a6599 0%, #1a4d7a 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(42, 101, 153, 0.3);
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #1a4d7a 0%, #2a6599 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42, 101, 153, 0.4);
+        }
+
+        .summary-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #2a6599 0%, #1a4d7a 100%);
+            color: white;
+            transition: background 0.3s ease;
+        }
+
+        [data-theme="dark"] .summary-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .summary-card h2 {
+            color: white;
+            border-bottom-color: rgba(255,255,255,0.3);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        [data-theme="dark"] .summary-item {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .summary-item-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .summary-item-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .transaction-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .transaction-item {
+            padding: 12px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--text-link);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .transaction-item.income {
+            border-left-color: #4CAF50;
+        }
+
+        .transaction-item.expense {
+            border-left-color: #f44336;
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 16px;
+            margin-right: 16px;
+        }
+
+        .transaction-amount.positive {
+            color: #4CAF50;
+        }
+
+        .transaction-amount.negative {
+            color: #f44336;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+            flex-shrink: 0;
+            white-space: nowrap;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+
+        .recurring-item {
+            padding: 12px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            border-left: 4px solid #4CAF50;
+            transition: background 0.3s ease;
+            overflow: hidden;
+        }
+
+        [data-theme="dark"] .recurring-item {
+            background: rgba(96, 165, 250, 0.1);
+        }
+
+        .recurring-item.expense-item {
+            background: rgba(244, 67, 54, 0.1);
+            border-left-color: #f44336;
+        }
+
+        [data-theme="dark"] .recurring-item.expense-item {
+            background: rgba(244, 67, 54, 0.15);
+        }
+
+        .recurring-item.disabled {
+            background: var(--input-bg);
+            opacity: 0.6;
+            border-left-color: #999;
+        }
+
+        .recurring-details {
+            flex: 1;
+            margin-bottom: 10px;
+        }
+
+        .recurring-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .recurring-item.editing {
+            padding: 15px;
+        }
+
+        .recurring-edit-form {
+            display: none;
+        }
+
+        .recurring-item.editing .recurring-edit-form {
+            display: block;
+        }
+
+        .recurring-item.editing .recurring-details {
+            display: none;
+        }
+
+        .recurring-item.editing .recurring-actions {
+            display: none;
+        }
+
+        .recurring-edit-form input,
+        .recurring-edit-form select {
+            margin-bottom: 10px;
+            font-size: 13px;
+            padding: 8px 10px;
+        }
+
+        .recurring-edit-form label {
+            margin-top: 8px;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .recurring-edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .save-btn {
+            background: #4CAF50;
+            padding: 6px 12px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .save-btn:hover {
+            background: #45a049;
+        }
+
+        .cancel-btn {
+            background: #999;
+            padding: 6px 12px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .cancel-btn:hover {
+            background: #777;
+        }
+
+        .recurring-item.editing {
+            padding: 15px;
+        }
+
+        .recurring-edit-form {
+            display: none;
+        }
+
+        .recurring-item.editing .recurring-edit-form {
+            display: block;
+        }
+
+        .recurring-item.editing .recurring-details {
+            display: none;
+        }
+
+        .recurring-item.editing .recurring-actions {
+            display: none;
+        }
+
+        .recurring-edit-form input,
+        .recurring-edit-form select {
+            margin-bottom: 10px;
+        }
+
+        .recurring-edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .recurring-amount {
+            font-weight: 600;
+            color: #4CAF50;
+            margin-right: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .recurring-amount.expense-amount {
+            color: #f44336;
+        }
+
+        .recurring-frequency {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-btn {
+            background: #4CAF50;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+            flex-shrink: 0;
+            white-space: nowrap;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #45a049;
+        }
+
+        .edit-btn {
+            background: #2196F3;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+            flex-shrink: 0;
+            white-space: nowrap;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn:hover {
+            background: #1976D2;
+        }
+
+        .toggle-btn.expense-toggle {
+            background: #f44336;
+        }
+
+        .toggle-btn.expense-toggle:hover {
+            background: #d32f2f;
+        }
+
+        .toggle-btn.disabled {
+            background: #999;
+        }
+
+        .toggle-btn.disabled:hover {
+            background: #777;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 15px;
+        }
+
+        .chart-card {
+            grid-column: 1 / -1;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .filter-card {
+            grid-column: 1 / -1;
+            margin-bottom: 0;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .filter-btn {
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            background: #f0f0f0;
+            color: #555;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: #e0e0e0;
+            border-color: #2a6599;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #2a6599 0%, #1a4d7a 100%);
+            color: white;
+            border-color: #2a6599;
+        }
+
+        .date-range-container {
+            display: none;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding: 15px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .date-range-container.show {
+            display: flex;
+        }
+
+        .date-range-container label {
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .date-range-container input {
+            margin: 0;
+            width: auto;
+            min-width: 150px;
+        }
+
+        .filter-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #1a4d7a;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+            <span class="theme-toggle-icon sun">☀️</span>
+            <span class="theme-toggle-icon moon">🌙</span>
+            <div class="theme-toggle-slider"></div>
+        </div>
+        <h1>Financial Tracker</h1>
+        <div class="tagline">Track your income, expenses, and savings</div>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">← Retirement Calculator</a>
+        </div>
+    </div>
+    <div class="page-content">
+        <div class="tracker-container">
+            <!-- Filter Card -->
+            <div class="card filter-card">
+                <h2>Filter by Date</h2>
+                <div class="filter-controls">
+                    <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All Time</button>
+                    <button class="filter-btn" data-filter="day" onclick="setFilter('day', this)">Today</button>
+                    <button class="filter-btn" data-filter="week" onclick="setFilter('week', this)">This Week</button>
+                    <button class="filter-btn" data-filter="month" onclick="setFilter('month', this)">This Month</button>
+                    <button class="filter-btn" data-filter="range" onclick="setFilter('range', this)">Custom Range</button>
+                </div>
+                <div class="date-range-container" id="dateRangeContainer">
+                    <label for="startDate">From:</label>
+                    <input type="date" id="startDate" />
+                    <label for="endDate">To:</label>
+                    <input type="date" id="endDate" />
+                    <button onclick="applyDateRange()">Apply Range</button>
+                </div>
+                <div class="filter-info" id="filterInfo">Showing all transactions</div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="card summary-card">
+                <h2>Financial Summary</h2>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-item-label">Total Income</div>
+                        <div class="summary-item-value" id="totalIncome">$0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-label">Total Expenses</div>
+                        <div class="summary-item-value" id="totalExpenses">$0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-label">Net Balance</div>
+                        <div class="summary-item-value" id="netBalance">$0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-label">Monthly Savings Rate</div>
+                        <div class="summary-item-value" id="savingsRate">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Worth Card (hidden for now) -->
+            <div class="card" style="margin-top: 10px; display: none;">
+                <h2>Net Worth</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 10px;">
+                    <div>
+                        <h3 style="font-size: 14px; margin-bottom: 8px; color: #2a6599;">Assets</h3>
+                        <label for="nwCash">Cash & Accounts:</label>
+                        <input type="number" id="nwCash" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                        
+                        <label for="nwInvestments" style="margin-top: 8px;">Investments:</label>
+                        <input type="number" id="nwInvestments" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                        
+                        <label for="nwProperty" style="margin-top: 8px;">Property & Other Assets:</label>
+                        <input type="number" id="nwProperty" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                        
+                        <label for="nwOtherAssets" style="margin-top: 8px;">Other Assets:</label>
+                        <input type="number" id="nwOtherAssets" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                    </div>
+                    <div>
+                        <h3 style="font-size: 14px; margin-bottom: 8px; color: #2a6599;">Liabilities</h3>
+                        <label for="nwCreditCards">Credit Cards:</label>
+                        <input type="number" id="nwCreditCards" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                        
+                        <label for="nwLoans" style="margin-top: 8px;">Loans / Mortgage:</label>
+                        <input type="number" id="nwLoans" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                        
+                        <label for="nwOtherLiabilities" style="margin-top: 8px;">Other Liabilities:</label>
+                        <input type="number" id="nwOtherLiabilities" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                    </div>
+                    <div>
+                        <h3 style="font-size: 14px; margin-bottom: 8px; color: #2a6599;">Snapshot</h3>
+                        <div class="summary-grid" style="grid-template-columns: 1fr; gap: 10px;">
+                            <div class="summary-item" style="background: var(--card-bg-alt);">
+                                <div class="summary-item-label">Total Assets</div>
+                                <div class="summary-item-value" id="nwTotalAssets">$0</div>
+                            </div>
+                            <div class="summary-item" style="background: var(--card-bg-alt);">
+                                <div class="summary-item-label">Total Liabilities</div>
+                                <div class="summary-item-value" id="nwTotalLiabilities">$0</div>
+                            </div>
+                            <div class="summary-item" style="background: var(--card-bg-alt);">
+                                <div class="summary-item-label">Net Worth</div>
+                                <div class="summary-item-value" id="nwNetWorth">$0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Cards Container -->
+            <div class="input-cards-container">
+                <!-- Income Card -->
+                <div class="card">
+                    <h2>Income</h2>
+                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                        <input type="checkbox" id="incomeIsRecurring" onchange="toggleIncomeRecurring()" />
+                        <span>Make this recurring</span>
+                    </label>
+                    
+                    <label for="incomeDescription">Description:</label>
+                    <input type="text" id="incomeDescription" placeholder="e.g. Salary, Bonus, Investment Returns" />
+                    
+                    <label for="incomeAmount">Amount ($):</label>
+                    <input type="number" id="incomeAmount" placeholder="0.00" step="0.01" min="0" />
+                    
+                    <div id="incomeRecurringFields" style="display: none;">
+                        <label for="incomeFrequency">Frequency:</label>
+                        <select id="incomeFrequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly">Bi-Weekly</option>
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        
+                        <label for="incomeStartDate">Start Date:</label>
+                        <input type="date" id="incomeStartDate" />
+                    </div>
+                    
+                    <div id="incomeOneTimeFields">
+                        <label for="incomeDate">Date:</label>
+                        <input type="date" id="incomeDate" />
+                    </div>
+                    
+                    <button onclick="addIncomeTransaction()">Add Income</button>
+                    
+                    <div id="recurringIncomeList" style="margin-top: 20px; max-height: 200px; overflow-y: auto;">
+                        <!-- Recurring incomes will be listed here -->
+                    </div>
+                </div>
+
+                <!-- Expenses Card -->
+                <div class="card">
+                    <h2>Expenses</h2>
+                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                        <input type="checkbox" id="expenseIsRecurring" onchange="toggleExpenseRecurring()" />
+                        <span>Make this recurring</span>
+                    </label>
+                    
+                    <label for="expenseDescription">Description:</label>
+                    <input type="text" id="expenseDescription" placeholder="e.g. Rent, Netflix, Food, Utilities" />
+                    
+                    <label for="expenseAmount">Amount ($):</label>
+                    <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0" />
+                    
+                    <label for="expenseCategory">Category:</label>
+                    <select id="expenseCategory">
+                        <option value="housing">Housing</option>
+                        <option value="food">Food</option>
+                        <option value="transport">Transportation</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="other">Other</option>
+                    </select>
+                    
+                    <div id="expenseRecurringFields" style="display: none;">
+                        <label for="expenseFrequency">Frequency:</label>
+                        <select id="expenseFrequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly">Bi-Weekly</option>
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        
+                        <label for="expenseStartDate">Start Date:</label>
+                        <input type="date" id="expenseStartDate" />
+                    </div>
+                    
+                    <div id="expenseOneTimeFields">
+                        <label for="expenseDate">Date:</label>
+                        <input type="date" id="expenseDate" />
+                    </div>
+                    
+                    <button onclick="addExpenseTransaction()">Add Expense</button>
+                    
+                    <div id="recurringExpenseList" style="margin-top: 20px; max-height: 200px; overflow-y: auto;">
+                        <!-- Recurring expenses will be listed here -->
+                    </div>
+                </div>
+
+                <!-- Budget & Goals Card -->
+                <div class="card">
+                    <h2>Budget & Goals</h2>
+                    
+                    <!-- Budgets Section -->
+                    <h3 style="font-size: 16px; margin: 20px 0 15px; color: #2a6599; border-bottom: 2px solid #e3f2fd; padding-bottom: 8px;">Budgets</h3>
+                    <div id="budgetList">
+                        <!-- Budget items will be displayed here -->
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label for="budgetName">Budget Name:</label>
+                        <input type="text" id="budgetName" placeholder="e.g. Groceries, Entertainment, Monthly Spending" style="margin-bottom: 8px;" />
+                        <label for="budgetAmount">Budget Amount ($):</label>
+                        <input type="number" id="budgetAmount" placeholder="0.00" step="0.01" min="0" style="margin-bottom: 8px;" />
+                        <label for="budgetCategory">Category:</label>
+                        <select id="budgetCategory" style="margin-bottom: 8px;">
+                            <option value="housing">Housing</option>
+                            <option value="food">Food</option>
+                            <option value="transport">Transportation</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="other" selected>Other</option>
+                        </select>
+                        <label for="budgetFrequency">Timeframe:</label>
+                        <select id="budgetFrequency" style="margin-bottom: 8px;">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        <button onclick="addBudget()" style="width: 100%;">Add Budget</button>
+                    </div>
+
+                    <!-- Savings Goals Section -->
+                    <h3 style="font-size: 16px; margin: 30px 0 15px; color: #2a6599; border-bottom: 2px solid #e3f2fd; padding-bottom: 8px;">Savings Goals</h3>
+                    <div id="goalsList">
+                        <!-- Goals will be displayed here -->
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label for="goalName">Goal Name:</label>
+                        <input type="text" id="goalName" placeholder="e.g. Emergency Fund, Vacation" style="margin-bottom: 8px;" />
+                        <label for="goalTarget">Target Amount ($):</label>
+                        <input type="number" id="goalTarget" placeholder="0.00" step="0.01" min="0" style="margin-bottom: 8px;" />
+                        <button onclick="addGoal()" style="width: 100%;">Add Goal</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="card chart-card">
+                <h2>Financial Visualizations</h2>
+                <div class="charts-grid">
+                    <div>
+                        <h3 style="font-size: 16px; margin-bottom: 10px; color: #2a6599;">Income vs Expenses Over Time</h3>
+                        <div class="chart-container">
+                            <canvas id="incomeExpenseChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 16px; margin-bottom: 10px; color: #2a6599;">Expense Categories</h3>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 16px; margin-bottom: 10px; color: #2a6599;">Monthly Summary</h3>
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions List Card -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="margin: 0;">Recent Transactions</h2>
+                    <button class="filter-btn" style="padding: 6px 14px; font-size: 12px;" onclick="exportDataToCSV()">
+                        Export Data
+                    </button>
+                </div>
+                <div class="transaction-list" id="transactionList">
+                    <p style="text-align: center; color: #999; padding: 20px;">No transactions yet. Add income or expenses to get started.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize theme on page load
+        initTheme();
+
+        // Store transactions in localStorage
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        let recurringIncomes = JSON.parse(localStorage.getItem('recurringIncomes')) || [];
+        let recurringExpenses = JSON.parse(localStorage.getItem('recurringExpenses')) || [];
+        let budgets = JSON.parse(localStorage.getItem('budgets')) || [];
+        let goals = JSON.parse(localStorage.getItem('goals')) || [];
+        let netWorth = JSON.parse(localStorage.getItem('netWorth')) || {
+            cash: 0,
+            investments: 0,
+            property: 0,
+            otherAssets: 0,
+            creditCards: 0,
+            loans: 0,
+            otherLiabilities: 0
+        };
+        let currentFilter = 'all';
+        let dateRange = { start: null, end: null };
+        
+        // Chart instances
+        let incomeExpenseChart = null;
+        let categoryChart = null;
+        let monthlyChart = null;
+
+        // Set today's date as default
+        document.getElementById('incomeDate').valueAsDate = new Date();
+        document.getElementById('expenseDate').valueAsDate = new Date();
+        document.getElementById('incomeStartDate').valueAsDate = new Date();
+        document.getElementById('expenseStartDate').valueAsDate = new Date();
+        
+        // Set default date range to current month
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('startDate').valueAsDate = firstDay;
+        document.getElementById('endDate').valueAsDate = today;
+
+        // Generate transactions from recurring incomes and expenses on page load
+        generateRecurringTransactions();
+        updateRecurringExpenseList();
+
+        function toggleIncomeRecurring() {
+            const isRecurring = document.getElementById('incomeIsRecurring').checked;
+            document.getElementById('incomeRecurringFields').style.display = isRecurring ? 'block' : 'none';
+            document.getElementById('incomeOneTimeFields').style.display = isRecurring ? 'none' : 'block';
+        }
+
+        function toggleExpenseRecurring() {
+            const isRecurring = document.getElementById('expenseIsRecurring').checked;
+            document.getElementById('expenseRecurringFields').style.display = isRecurring ? 'block' : 'none';
+            document.getElementById('expenseOneTimeFields').style.display = isRecurring ? 'none' : 'block';
+        }
+
+        function addIncomeTransaction() {
+            const description = document.getElementById('incomeDescription').value.trim();
+            const amount = parseFloat(document.getElementById('incomeAmount').value);
+            const isRecurring = document.getElementById('incomeIsRecurring').checked;
+
+            if (!description || !amount || amount <= 0) {
+                alert('Please fill in description and amount with valid values.');
+                return;
+            }
+
+            if (isRecurring) {
+                const frequency = document.getElementById('incomeFrequency').value;
+                const startDate = document.getElementById('incomeStartDate').value;
+
+                if (!startDate) {
+                    alert('Please select a start date.');
+                    return;
+                }
+
+                const recurringIncome = {
+                    id: Date.now(),
+                    description,
+                    amount,
+                    frequency,
+                    startDate,
+                    enabled: true,
+                    lastGenerated: null
+                };
+
+                recurringIncomes.push(recurringIncome);
+                saveRecurringIncomes();
+                generateRecurringTransactions();
+                updateRecurringIncomeList();
+            } else {
+                const date = document.getElementById('incomeDate').value;
+
+                if (!date) {
+                    alert('Please select a date.');
+                    return;
+                }
+
+                const transaction = {
+                    id: Date.now(),
+                    type: 'income',
+                    description,
+                    amount,
+                    date,
+                    timestamp: new Date(date).toISOString()
+                };
+
+                transactions.push(transaction);
+                saveTransactions();
+                updateDisplay();
+            }
+
+            clearIncomeForm();
+        }
+
+        function addExpenseTransaction() {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const category = document.getElementById('expenseCategory').value;
+            const isRecurring = document.getElementById('expenseIsRecurring').checked;
+
+            if (!description || !amount || amount <= 0) {
+                alert('Please fill in description and amount with valid values.');
+                return;
+            }
+
+            if (isRecurring) {
+                const frequency = document.getElementById('expenseFrequency').value;
+                const startDate = document.getElementById('expenseStartDate').value;
+
+                if (!startDate) {
+                    alert('Please select a start date.');
+                    return;
+                }
+
+                const recurringExpense = {
+                    id: Date.now(),
+                    description,
+                    amount,
+                    category,
+                    frequency,
+                    startDate,
+                    enabled: true,
+                    lastGenerated: null
+                };
+
+                recurringExpenses.push(recurringExpense);
+                saveRecurringExpenses();
+                generateRecurringTransactions();
+                updateRecurringExpenseList();
+            } else {
+                const date = document.getElementById('expenseDate').value;
+
+                if (!date) {
+                    alert('Please select a date.');
+                    return;
+                }
+
+                const transaction = {
+                    id: Date.now(),
+                    type: 'expense',
+                    description,
+                    amount,
+                    category,
+                    date,
+                    timestamp: new Date(date).toISOString()
+                };
+
+                transactions.push(transaction);
+                saveTransactions();
+                updateDisplay();
+            }
+
+            clearExpenseForm();
+        }
+
+        function toggleRecurringIncome(id) {
+            const recurring = recurringIncomes.find(r => r.id === id);
+            if (recurring) {
+                recurring.enabled = !recurring.enabled;
+                saveRecurringIncomes();
+                generateRecurringTransactions();
+                updateRecurringIncomeList();
+                // updateDisplay is called inside generateRecurringTransactions
+            }
+        }
+
+        function editRecurringIncome(id) {
+            const recurring = recurringIncomes.find(r => r.id === id);
+            if (!recurring) return;
+
+            const item = document.querySelector(`.recurring-item[data-id="${id}"]`);
+            if (!item) return;
+
+            item.classList.add('editing');
+            const form = item.querySelector('.recurring-edit-form');
+            
+            // Populate form with current values
+            form.querySelector('#editIncomeDesc_' + id).value = recurring.description;
+            form.querySelector('#editIncomeAmount_' + id).value = recurring.amount;
+            form.querySelector('#editIncomeFreq_' + id).value = recurring.frequency;
+            form.querySelector('#editIncomeStart_' + id).value = recurring.startDate;
+        }
+
+        function saveRecurringIncomeEdit(id) {
+            const recurring = recurringIncomes.find(r => r.id === id);
+            if (!recurring) return;
+
+            const form = document.querySelector(`.recurring-item[data-id="${id}"] .recurring-edit-form`);
+            if (!form) return;
+
+            const description = form.querySelector('#editIncomeDesc_' + id).value.trim();
+            const amount = parseFloat(form.querySelector('#editIncomeAmount_' + id).value);
+            const frequency = form.querySelector('#editIncomeFreq_' + id).value;
+            const startDate = form.querySelector('#editIncomeStart_' + id).value;
+
+            if (!description || !amount || amount <= 0 || !startDate) {
+                alert('Please fill in all fields with valid values.');
+                return;
+            }
+
+            // Update recurring income
+            recurring.description = description;
+            recurring.amount = amount;
+            recurring.frequency = frequency;
+            recurring.startDate = startDate;
+            recurring.lastGenerated = null; // Reset to regenerate transactions
+
+            saveRecurringIncomes();
+            generateRecurringTransactions();
+            updateRecurringIncomeList();
+        }
+
+        function cancelRecurringIncomeEdit(id) {
+            const item = document.querySelector(`.recurring-item[data-id="${id}"]`);
+            if (item) {
+                item.classList.remove('editing');
+            }
+        }
+
+        function deleteRecurringIncome(id) {
+            // Also delete all transactions associated with this recurring income
+            transactions = transactions.filter(t => t.recurringId !== id || t.type !== 'income');
+            recurringIncomes = recurringIncomes.filter(r => r.id !== id);
+            saveRecurringIncomes();
+            saveTransactions();
+            generateRecurringTransactions();
+            updateRecurringIncomeList();
+        }
+
+        function saveRecurringIncomes() {
+            localStorage.setItem('recurringIncomes', JSON.stringify(recurringIncomes));
+        }
+
+        function clearIncomeForm() {
+            document.getElementById('incomeDescription').value = '';
+            document.getElementById('incomeAmount').value = '';
+            document.getElementById('incomeIsRecurring').checked = false;
+            document.getElementById('incomeFrequency').value = 'monthly';
+            document.getElementById('incomeStartDate').valueAsDate = new Date();
+            document.getElementById('incomeDate').valueAsDate = new Date();
+            toggleIncomeRecurring();
+        }
+
+        function clearExpenseForm() {
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseCategory').value = 'other';
+            document.getElementById('expenseIsRecurring').checked = false;
+            document.getElementById('expenseFrequency').value = 'monthly';
+            document.getElementById('expenseStartDate').valueAsDate = new Date();
+            document.getElementById('expenseDate').valueAsDate = new Date();
+            toggleExpenseRecurring();
+        }
+
+        function addRecurringExpense() {
+            const description = document.getElementById('recurringExpenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('recurringExpenseAmount').value);
+            const category = document.getElementById('recurringExpenseCategory').value;
+            const frequency = document.getElementById('recurringExpenseFrequency').value;
+            const startDate = document.getElementById('recurringExpenseStartDate').value;
+
+            if (!description || !amount || amount <= 0 || !startDate) {
+                alert('Please fill in all fields with valid values.');
+                return;
+            }
+
+            const recurringExpense = {
+                id: Date.now(),
+                description,
+                amount,
+                category,
+                frequency,
+                startDate,
+                enabled: true,
+                lastGenerated: null
+            };
+
+            recurringExpenses.push(recurringExpense);
+            saveRecurringExpenses();
+            generateRecurringTransactions();
+            updateRecurringExpenseList();
+            clearRecurringExpenseForm();
+            // updateDisplay is called inside generateRecurringTransactions
+        }
+
+        function toggleRecurringExpense(id) {
+            const recurring = recurringExpenses.find(r => r.id === id);
+            if (recurring) {
+                recurring.enabled = !recurring.enabled;
+                saveRecurringExpenses();
+                generateRecurringTransactions();
+                updateRecurringExpenseList();
+                // updateDisplay is called inside generateRecurringTransactions
+            }
+        }
+
+        function editRecurringExpense(id) {
+            const recurring = recurringExpenses.find(r => r.id === id);
+            if (!recurring) return;
+
+            const item = document.querySelector(`.recurring-item[data-id="${id}"]`);
+            if (!item) return;
+
+            item.classList.add('editing');
+            const form = item.querySelector('.recurring-edit-form');
+            
+            // Populate form with current values
+            form.querySelector('#editExpenseDesc_' + id).value = recurring.description;
+            form.querySelector('#editExpenseAmount_' + id).value = recurring.amount;
+            form.querySelector('#editExpenseCategory_' + id).value = recurring.category;
+            form.querySelector('#editExpenseFreq_' + id).value = recurring.frequency;
+            form.querySelector('#editExpenseStart_' + id).value = recurring.startDate;
+        }
+
+        function saveRecurringExpenseEdit(id) {
+            const recurring = recurringExpenses.find(r => r.id === id);
+            if (!recurring) return;
+
+            const form = document.querySelector(`.recurring-item[data-id="${id}"] .recurring-edit-form`);
+            if (!form) return;
+
+            const description = form.querySelector('#editExpenseDesc_' + id).value.trim();
+            const amount = parseFloat(form.querySelector('#editExpenseAmount_' + id).value);
+            const category = form.querySelector('#editExpenseCategory_' + id).value;
+            const frequency = form.querySelector('#editExpenseFreq_' + id).value;
+            const startDate = form.querySelector('#editExpenseStart_' + id).value;
+
+            if (!description || !amount || amount <= 0 || !startDate) {
+                alert('Please fill in all fields with valid values.');
+                return;
+            }
+
+            // Update recurring expense
+            recurring.description = description;
+            recurring.amount = amount;
+            recurring.category = category;
+            recurring.frequency = frequency;
+            recurring.startDate = startDate;
+            recurring.lastGenerated = null; // Reset to regenerate transactions
+
+            saveRecurringExpenses();
+            generateRecurringTransactions();
+            updateRecurringExpenseList();
+        }
+
+        function cancelRecurringExpenseEdit(id) {
+            const item = document.querySelector(`.recurring-item[data-id="${id}"]`);
+            if (item) {
+                item.classList.remove('editing');
+            }
+        }
+
+        function editRecurringExpense(id) {
+            const recurring = recurringExpenses.find(r => r.id === id);
+            if (!recurring) return;
+
+            const item = document.querySelector(`.recurring-item[data-id="${id}"]`);
+            if (!item) return;
+
+            item.classList.add('editing');
+            const form = item.querySelector('.recurring-edit-form');
+            
+            // Populate form with current values
+            form.querySelector('#editExpenseDesc_' + id).value = recurring.description;
+            form.querySelector('#editExpenseAmount_' + id).value = recurring.amount;
+            form.querySelector('#editExpenseCategory_' + id).value = recurring.category;
+            form.querySelector('#editExpenseFreq_' + id).value = recurring.frequency;
+            form.querySelector('#editExpenseStart_' + id).value = recurring.startDate;
+        }
+
+        function saveRecurringExpenseEdit(id) {
+            const recurring = recurringExpenses.find(r => r.id === id);
+            if (!recurring) return;
+
+            const form = document.querySelector(`.recurring-item[data-id="${id}"] .recurring-edit-form`);
+            if (!form) return;
+
+            const description = form.querySelector('#editExpenseDesc_' + id).value.trim();
+            const amount = parseFloat(form.querySelector('#editExpenseAmount_' + id).value);
+            const category = form.querySelector('#editExpenseCategory_' + id).value;
+            const frequency = form.querySelector('#editExpenseFreq_' + id).value;
+            const startDate = form.querySelector('#editExpenseStart_' + id).value;
+
+            if (!description || !amount || amount <= 0 || !startDate) {
+                alert('Please fill in all fields with valid values.');
+                return;
+            }
+
+            // Update recurring expense
+            recurring.description = description;
+            recurring.amount = amount;
+            recurring.category = category;
+            recurring.frequency = frequency;
+            recurring.startDate = startDate;
+            recurring.lastGenerated = null; // Reset to regenerate transactions
+
+            saveRecurringExpenses();
+            generateRecurringTransactions();
+            updateRecurringExpenseList();
+        }
+
+        function cancelRecurringExpenseEdit(id) {
+            const item = document.querySelector(`.recurring-item[data-id="${id}"]`);
+            if (item) {
+                item.classList.remove('editing');
+            }
+        }
+
+        function deleteRecurringExpense(id) {
+            // Also delete all transactions associated with this recurring expense
+            transactions = transactions.filter(t => t.recurringId !== id || t.type !== 'expense');
+            recurringExpenses = recurringExpenses.filter(r => r.id !== id);
+            saveRecurringExpenses();
+            saveTransactions();
+            generateRecurringTransactions();
+            updateRecurringExpenseList();
+        }
+
+        function saveRecurringExpenses() {
+            localStorage.setItem('recurringExpenses', JSON.stringify(recurringExpenses));
+        }
+
+
+        function updateRecurringExpenseList() {
+            const list = document.getElementById('recurringExpenseList');
+            
+            if (recurringExpenses.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999; font-size: 13px; padding: 10px;">No recurring expenses set up yet.</p>';
+                return;
+            }
+
+            list.innerHTML = recurringExpenses.map(recurring => {
+                const frequencyLabels = {
+                    daily: 'Daily',
+                    weekly: 'Weekly',
+                    biweekly: 'Bi-Weekly',
+                    monthly: 'Monthly',
+                    quarterly: 'Quarterly',
+                    yearly: 'Yearly'
+                };
+
+                const categoryLabels = {
+                    housing: 'Housing',
+                    food: 'Food',
+                    transport: 'Transportation',
+                    utilities: 'Utilities',
+                    healthcare: 'Healthcare',
+                    entertainment: 'Entertainment',
+                    other: 'Other'
+                };
+
+                return `
+                    <div class="recurring-item expense-item ${recurring.enabled ? '' : 'disabled'}" data-id="${recurring.id}">
+                        <div class="recurring-details">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                                <div style="font-weight: 600;">${recurring.description}</div>
+                                <div class="recurring-amount expense-amount">$${recurring.amount.toFixed(2)}</div>
+                            </div>
+                            <div class="recurring-frequency">${frequencyLabels[recurring.frequency]} • ${categoryLabels[recurring.category]} • Started ${new Date(recurring.startDate).toLocaleDateString()}</div>
+                        </div>
+                        <div class="recurring-actions">
+                            <button class="edit-btn" onclick="editRecurringExpense(${recurring.id})">Edit</button>
+                            <button class="toggle-btn expense-toggle ${recurring.enabled ? '' : 'disabled'}" onclick="toggleRecurringExpense(${recurring.id})">
+                                ${recurring.enabled ? 'Disable' : 'Enable'}
+                            </button>
+                            <button class="delete-btn" onclick="deleteRecurringExpense(${recurring.id})">Delete</button>
+                        </div>
+                        <div class="recurring-edit-form">
+                            <label>Description:</label>
+                            <input type="text" id="editExpenseDesc_${recurring.id}" placeholder="Description" />
+                            <label>Amount ($):</label>
+                            <input type="number" id="editExpenseAmount_${recurring.id}" placeholder="0.00" step="0.01" min="0" />
+                            <label>Category:</label>
+                            <select id="editExpenseCategory_${recurring.id}">
+                                <option value="housing">Housing</option>
+                                <option value="food">Food</option>
+                                <option value="transport">Transportation</option>
+                                <option value="utilities">Utilities</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <label>Frequency:</label>
+                            <select id="editExpenseFreq_${recurring.id}">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="biweekly">Bi-Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                            <label>Start Date:</label>
+                            <input type="date" id="editExpenseStart_${recurring.id}" />
+                            <div class="recurring-edit-actions">
+                                <button class="save-btn" onclick="saveRecurringExpenseEdit(${recurring.id})">Save</button>
+                                <button class="cancel-btn" onclick="cancelRecurringExpenseEdit(${recurring.id})">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateRecurringIncomeList() {
+            const list = document.getElementById('recurringIncomeList');
+            
+            if (recurringIncomes.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999; font-size: 13px; padding: 10px;">No recurring incomes set up yet.</p>';
+                return;
+            }
+
+            list.innerHTML = recurringIncomes.map(recurring => {
+                const frequencyLabels = {
+                    daily: 'Daily',
+                    weekly: 'Weekly',
+                    biweekly: 'Bi-Weekly',
+                    monthly: 'Monthly',
+                    quarterly: 'Quarterly',
+                    yearly: 'Yearly'
+                };
+
+                return `
+                    <div class="recurring-item ${recurring.enabled ? '' : 'disabled'}" data-id="${recurring.id}">
+                        <div class="recurring-details">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                                <div style="font-weight: 600;">${recurring.description}</div>
+                                <div class="recurring-amount">$${recurring.amount.toFixed(2)}</div>
+                            </div>
+                            <div class="recurring-frequency">${frequencyLabels[recurring.frequency]} • Started ${new Date(recurring.startDate).toLocaleDateString()}</div>
+                        </div>
+                        <div class="recurring-actions">
+                            <button class="edit-btn" onclick="editRecurringIncome(${recurring.id})">Edit</button>
+                            <button class="toggle-btn ${recurring.enabled ? '' : 'disabled'}" onclick="toggleRecurringIncome(${recurring.id})">
+                                ${recurring.enabled ? 'Disable' : 'Enable'}
+                            </button>
+                            <button class="delete-btn" onclick="deleteRecurringIncome(${recurring.id})">Delete</button>
+                        </div>
+                        <div class="recurring-edit-form">
+                            <label>Description:</label>
+                            <input type="text" id="editIncomeDesc_${recurring.id}" placeholder="Description" />
+                            <label>Amount ($):</label>
+                            <input type="number" id="editIncomeAmount_${recurring.id}" placeholder="0.00" step="0.01" min="0" />
+                            <label>Frequency:</label>
+                            <select id="editIncomeFreq_${recurring.id}">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="biweekly">Bi-Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                            <label>Start Date:</label>
+                            <input type="date" id="editIncomeStart_${recurring.id}" />
+                            <div class="recurring-edit-actions">
+                                <button class="save-btn" onclick="saveRecurringIncomeEdit(${recurring.id})">Save</button>
+                                <button class="cancel-btn" onclick="cancelRecurringIncomeEdit(${recurring.id})">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getNextDate(startDate, frequency, lastGenerated) {
+            const start = new Date(startDate);
+            const last = lastGenerated ? new Date(lastGenerated) : start;
+            const next = new Date(last);
+
+            switch (frequency) {
+                case 'daily':
+                    next.setDate(next.getDate() + 1);
+                    break;
+                case 'weekly':
+                    next.setDate(next.getDate() + 7);
+                    break;
+                case 'biweekly':
+                    next.setDate(next.getDate() + 14);
+                    break;
+                case 'monthly':
+                    next.setMonth(next.getMonth() + 1);
+                    break;
+                case 'quarterly':
+                    next.setMonth(next.getMonth() + 3);
+                    break;
+                case 'yearly':
+                    next.setFullYear(next.getFullYear() + 1);
+                    break;
+            }
+
+            return next;
+        }
+
+        function generateRecurringTransactions() {
+            const today = new Date();
+            today.setHours(23, 59, 59, 999); // Include today
+
+            // Generate recurring income transactions
+            recurringIncomes.forEach(recurring => {
+                if (!recurring.enabled) return;
+
+                const startDate = new Date(recurring.startDate);
+                startDate.setHours(0, 0, 0, 0);
+
+                // Find existing transactions for this recurring income
+                const existingTransactions = transactions.filter(t => 
+                    t.recurringId === recurring.id && t.type === 'income'
+                );
+
+                // Get all existing dates for this recurring income
+                const existingDates = new Set(existingTransactions.map(t => t.date));
+
+                // Start from the start date
+                let currentDate = new Date(startDate);
+                currentDate.setHours(0, 0, 0, 0);
+
+                // Generate transactions from start date up to today
+                while (currentDate <= today) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    
+                    // Check if transaction already exists for this date
+                    if (!existingDates.has(dateStr)) {
+                        const transaction = {
+                            id: Date.now() + Math.random() * 1000, // Unique ID
+                            type: 'income',
+                            description: recurring.description,
+                            amount: recurring.amount,
+                            date: dateStr,
+                            timestamp: currentDate.toISOString(),
+                            recurringId: recurring.id
+                        };
+
+                        transactions.push(transaction);
+                        existingDates.add(dateStr); // Track that we added this date
+                        recurring.lastGenerated = dateStr;
+                    }
+
+                    // Move to next date based on frequency
+                    currentDate = getNextDate(startDate, recurring.frequency, currentDate);
+                    currentDate.setHours(0, 0, 0, 0);
+                }
+            });
+
+            // Generate recurring expense transactions
+            recurringExpenses.forEach(recurring => {
+                if (!recurring.enabled) return;
+
+                const startDate = new Date(recurring.startDate);
+                startDate.setHours(0, 0, 0, 0);
+
+                // Find existing transactions for this recurring expense
+                const existingTransactions = transactions.filter(t => 
+                    t.recurringId === recurring.id && t.type === 'expense'
+                );
+
+                // Get all existing dates for this recurring expense
+                const existingDates = new Set(existingTransactions.map(t => t.date));
+
+                // Start from the start date
+                let currentDate = new Date(startDate);
+                currentDate.setHours(0, 0, 0, 0);
+
+                // Generate transactions from start date up to today
+                while (currentDate <= today) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    
+                    // Check if transaction already exists for this date
+                    if (!existingDates.has(dateStr)) {
+                        const transaction = {
+                            id: Date.now() + Math.random() * 1000, // Unique ID
+                            type: 'expense',
+                            description: recurring.description,
+                            amount: recurring.amount,
+                            category: recurring.category,
+                            date: dateStr,
+                            timestamp: currentDate.toISOString(),
+                            recurringId: recurring.id
+                        };
+
+                        transactions.push(transaction);
+                        existingDates.add(dateStr); // Track that we added this date
+                        recurring.lastGenerated = dateStr;
+                    }
+
+                    // Move to next date based on frequency
+                    currentDate = getNextDate(startDate, recurring.frequency, currentDate);
+                    currentDate.setHours(0, 0, 0, 0);
+                }
+            });
+
+            saveRecurringIncomes();
+            saveRecurringExpenses();
+            saveTransactions();
+            updateDisplay();
+        }
+
+
+        function deleteTransaction(id) {
+            // Find the transaction first so we can see if it came from a recurring item
+            const tx = transactions.find(t => t.id === id);
+
+            if (tx && tx.recurringId) {
+                // If this transaction was generated from a recurring income/expense,
+                // delete the underlying recurring definition as well so it does not
+                // re-appear after refresh and is removed from the recurring list.
+                if (tx.type === 'income') {
+                    deleteRecurringIncome(tx.recurringId);
+                    return; // deleteRecurringIncome handles transactions + UI update
+                } else if (tx.type === 'expense') {
+                    deleteRecurringExpense(tx.recurringId);
+                    return; // deleteRecurringExpense handles transactions + UI update
+                }
+            }
+
+            // Normal one-time transaction delete
+            transactions = transactions.filter(t => t.id !== id);
+            saveTransactions();
+            updateDisplay();
+        }
+
+        function saveTransactions() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        function clearIncomeForm() {
+            document.getElementById('incomeDescription').value = '';
+            document.getElementById('incomeAmount').value = '';
+            document.getElementById('incomeDate').valueAsDate = new Date();
+        }
+
+        function clearExpenseForm() {
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseCategory').value = 'housing';
+            document.getElementById('expenseDate').valueAsDate = new Date();
+        }
+
+        function getFilteredTransactions() {
+            if (currentFilter === 'all') {
+                return transactions;
+            }
+
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            let startDate, endDate;
+
+            switch (currentFilter) {
+                case 'day':
+                    startDate = new Date(today);
+                    endDate = new Date(today);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                case 'week':
+                    const dayOfWeek = now.getDay();
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - dayOfWeek);
+                    endDate = new Date(today);
+                    endDate.setDate(today.getDate() + (6 - dayOfWeek));
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                case 'range':
+                    if (dateRange.start && dateRange.end) {
+                        startDate = new Date(dateRange.start);
+                        endDate = new Date(dateRange.end);
+                        endDate.setHours(23, 59, 59, 999);
+                    } else {
+                        return transactions;
+                    }
+                    break;
+                default:
+                    return transactions;
+            }
+
+            return transactions.filter(t => {
+                const transactionDate = new Date(t.date);
+                return transactionDate >= startDate && transactionDate <= endDate;
+            });
+        }
+
+        function setFilter(filter, buttonElement) {
+            currentFilter = filter;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            }
+            
+            // Show/hide date range container
+            const rangeContainer = document.getElementById('dateRangeContainer');
+            if (filter === 'range') {
+                rangeContainer.classList.add('show');
+            } else {
+                rangeContainer.classList.remove('show');
+                updateFilterInfo();
+                updateDisplay();
+            }
+        }
+
+        function applyDateRange() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            
+            if (!start || !end) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+            
+            if (new Date(start) > new Date(end)) {
+                alert('Start date must be before end date.');
+                return;
+            }
+            
+            dateRange.start = start;
+            dateRange.end = end;
+            currentFilter = 'range';
+            updateFilterInfo();
+            updateDisplay();
+        }
+
+        function updateFilterInfo() {
+            const info = document.getElementById('filterInfo');
+            const filtered = getFilteredTransactions();
+            
+            let text = '';
+            switch (currentFilter) {
+                case 'all':
+                    text = `Showing all ${filtered.length} transaction${filtered.length !== 1 ? 's' : ''}`;
+                    break;
+                case 'day':
+                    text = `Showing ${filtered.length} transaction${filtered.length !== 1 ? 's' : ''} from today`;
+                    break;
+                case 'week':
+                    const weekStart = new Date();
+                    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+                    text = `Showing ${filtered.length} transaction${filtered.length !== 1 ? 's' : ''} from this week (${weekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()})`;
+                    break;
+                case 'month':
+                    const monthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    text = `Showing ${filtered.length} transaction${filtered.length !== 1 ? 's' : ''} from ${monthName}`;
+                    break;
+                case 'range':
+                    if (dateRange.start && dateRange.end) {
+                        const start = new Date(dateRange.start).toLocaleDateString();
+                        const end = new Date(dateRange.end).toLocaleDateString();
+                        text = `Showing ${filtered.length} transaction${filtered.length !== 1 ? 's' : ''} from ${start} to ${end}`;
+                    } else {
+                        text = 'Please select a date range';
+                    }
+                    break;
+            }
+            
+            info.textContent = text;
+        }
+
+        function updateDisplay() {
+            updateSummary();
+            updateTransactionList();
+            updateCharts();
+            updateBudgetDisplay();
+            updateGoalsDisplay();
+            updateNetWorthUI();
+        }
+
+        // ---------- Export / Backup ----------
+        function toCsvValue(value) {
+            if (value === null || value === undefined) return '""';
+            const str = String(value);
+            // Escape quotes and wrap in quotes
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+
+        function exportSectionToCsv(headers, rows) {
+            const headerLine = headers.map(toCsvValue).join(',');
+            const rowLines = rows.map(row =>
+                headers.map(key => toCsvValue(row[key] !== undefined ? row[key] : '')).join(',')
+            );
+            return [headerLine, ...rowLines].join('\n');
+        }
+
+        function exportDataToCSV() {
+            const parts = [];
+            const timestamp = new Date().toISOString();
+
+            // Transactions (all, not just filtered)
+            parts.push('# Transactions');
+            const txHeaders = ['id', 'type', 'description', 'amount', 'category', 'date', 'timestamp', 'recurringId'];
+            parts.push(exportSectionToCsv(txHeaders, transactions));
+            parts.push('');
+
+            // Recurring incomes
+            parts.push('# Recurring Incomes');
+            const riHeaders = ['id', 'description', 'amount', 'category', 'frequency', 'startDate', 'enabled'];
+            parts.push(exportSectionToCsv(riHeaders, recurringIncomes));
+            parts.push('');
+
+            // Recurring expenses
+            parts.push('# Recurring Expenses');
+            const reHeaders = ['id', 'description', 'amount', 'category', 'frequency', 'startDate', 'enabled'];
+            parts.push(exportSectionToCsv(reHeaders, recurringExpenses));
+            parts.push('');
+
+            // Budgets
+            parts.push('# Budgets');
+            const budgetHeaders = ['id', 'name', 'amount', 'category', 'frequency'];
+            parts.push(exportSectionToCsv(budgetHeaders, budgets));
+            parts.push('');
+
+            // Goals
+            parts.push('# Goals');
+            const goalHeaders = ['id', 'name', 'target', 'current'];
+            parts.push(exportSectionToCsv(goalHeaders, goals));
+
+            const csvContent = parts.join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `financial-tracker-backup-${timestamp.split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function updateSummary() {
+            const filtered = getFilteredTransactions();
+            
+            const totalIncome = filtered
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const totalExpenses = filtered
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const netBalance = totalIncome - totalExpenses;
+            const savingsRate = totalIncome > 0 ? ((netBalance / totalIncome) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('netBalance').textContent = formatCurrency(netBalance);
+            document.getElementById('netBalance').style.color = netBalance >= 0 ? '#4CAF50' : '#f44336';
+            document.getElementById('savingsRate').textContent = savingsRate + '%';
+        }
+
+        function updateTransactionList() {
+            const list = document.getElementById('transactionList');
+            const filtered = getFilteredTransactions();
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No transactions found for the selected period.</p>';
+                return;
+            }
+
+            // Sort by date (newest first)
+            const sorted = [...filtered].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            list.innerHTML = sorted.map(transaction => {
+                const isIncome = transaction.type === 'income';
+                const sign = isIncome ? '+' : '-';
+                const amountClass = isIncome ? 'positive' : 'negative';
+                const itemClass = isIncome ? 'income' : 'expense';
+                const date = new Date(transaction.date).toLocaleDateString();
+
+                return `
+                    <div class="transaction-item ${itemClass}">
+                        <div class="transaction-details">
+                            <div style="font-weight: 600; margin-bottom: 4px;">${transaction.description}</div>
+                            <div style="font-size: 12px; color: #666;">${date}${transaction.category ? ' • ' + transaction.category.charAt(0).toUpperCase() + transaction.category.slice(1) : ''}</div>
+                        </div>
+                        <div class="transaction-amount ${amountClass}">
+                            ${sign}$${transaction.amount.toFixed(2)}
+                        </div>
+                        <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatCurrency(amount) {
+            return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // ---------- Net Worth ----------
+        function saveNetWorth() {
+            localStorage.setItem('netWorth', JSON.stringify(netWorth));
+        }
+
+        function updateNetWorthFromInputs() {
+            const num = (id) => parseFloat(document.getElementById(id).value) || 0;
+
+            netWorth.cash = num('nwCash');
+            netWorth.investments = num('nwInvestments');
+            netWorth.property = num('nwProperty');
+            netWorth.otherAssets = num('nwOtherAssets');
+            netWorth.creditCards = num('nwCreditCards');
+            netWorth.loans = num('nwLoans');
+            netWorth.otherLiabilities = num('nwOtherLiabilities');
+
+            saveNetWorth();
+            updateNetWorthUI();
+        }
+
+        function updateNetWorthUI() {
+            if (!document.getElementById('nwTotalAssets')) return;
+
+            const totalAssets = (netWorth.cash || 0) +
+                (netWorth.investments || 0) +
+                (netWorth.property || 0) +
+                (netWorth.otherAssets || 0);
+
+            const totalLiabilities = (netWorth.creditCards || 0) +
+                (netWorth.loans || 0) +
+                (netWorth.otherLiabilities || 0);
+
+            const net = totalAssets - totalLiabilities;
+
+            document.getElementById('nwTotalAssets').textContent = formatCurrency(totalAssets);
+            document.getElementById('nwTotalLiabilities').textContent = formatCurrency(totalLiabilities);
+            const netEl = document.getElementById('nwNetWorth');
+            netEl.textContent = formatCurrency(net);
+            netEl.style.color = net >= 0 ? '#4CAF50' : '#f44336';
+
+            // Sync inputs from stored values (only if empty / initial load)
+            document.getElementById('nwCash').value = netWorth.cash || '';
+            document.getElementById('nwInvestments').value = netWorth.investments || '';
+            document.getElementById('nwProperty').value = netWorth.property || '';
+            document.getElementById('nwOtherAssets').value = netWorth.otherAssets || '';
+            document.getElementById('nwCreditCards').value = netWorth.creditCards || '';
+            document.getElementById('nwLoans').value = netWorth.loans || '';
+            document.getElementById('nwOtherLiabilities').value = netWorth.otherLiabilities || '';
+        }
+
+        function updateCharts() {
+            const filtered = getFilteredTransactions();
+            updateIncomeExpenseChart(filtered);
+            updateCategoryChart(filtered);
+            updateMonthlyChart(filtered);
+        }
+
+        function updateIncomeExpenseChart(filteredTransactions) {
+            const ctx = document.getElementById('incomeExpenseChart');
+            
+            // Group transactions by date
+            const dateMap = {};
+            filteredTransactions.forEach(t => {
+                const date = t.date;
+                if (!dateMap[date]) {
+                    dateMap[date] = { income: 0, expense: 0 };
+                }
+                if (t.type === 'income') {
+                    dateMap[date].income += t.amount;
+                } else {
+                    dateMap[date].expense += t.amount;
+                }
+            });
+
+            // Sort dates
+            const sortedDates = Object.keys(dateMap).sort();
+            const incomeData = sortedDates.map(date => dateMap[date].income);
+            const expenseData = sortedDates.map(date => dateMap[date].expense);
+            const labels = sortedDates.map(date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+
+            if (incomeExpenseChart) {
+                incomeExpenseChart.destroy();
+            }
+
+            incomeExpenseChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Income',
+                        data: incomeData,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Expenses',
+                        data: expenseData,
+                        borderColor: '#f44336',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCategoryChart(filteredTransactions) {
+            const ctx = document.getElementById('categoryChart');
+            
+            // Group expenses by category
+            const categoryMap = {};
+            filteredTransactions
+                .filter(t => t.type === 'expense' && t.category)
+                .forEach(t => {
+                    const category = t.category.charAt(0).toUpperCase() + t.category.slice(1);
+                    categoryMap[category] = (categoryMap[category] || 0) + t.amount;
+                });
+
+            const categories = Object.keys(categoryMap);
+            const amounts = Object.values(categoryMap);
+
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+
+            if (categories.length === 0) {
+                categoryChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['No expenses'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['#e0e0e0']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                return;
+            }
+
+            const colors = [
+                '#f44336', '#ff9800', '#ffc107', '#4CAF50',
+                '#2196F3', '#9C27B0', '#E91E63', '#00BCD4'
+            ];
+
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: amounts,
+                        backgroundColor: colors.slice(0, categories.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMonthlyChart(filteredTransactions) {
+            const ctx = document.getElementById('monthlyChart');
+            
+            // Group by month
+            const monthMap = {};
+            filteredTransactions.forEach(t => {
+                const date = new Date(t.date);
+                const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+                if (!monthMap[monthKey]) {
+                    monthMap[monthKey] = { income: 0, expense: 0 };
+                }
+                if (t.type === 'income') {
+                    monthMap[monthKey].income += t.amount;
+                } else {
+                    monthMap[monthKey].expense += t.amount;
+                }
+            });
+
+            const sortedMonths = Object.keys(monthMap).sort();
+            const labels = sortedMonths.map(key => {
+                const [year, month] = key.split('-');
+                return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            });
+            const incomeData = sortedMonths.map(key => monthMap[key].income);
+            const expenseData = sortedMonths.map(key => monthMap[key].expense);
+
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+
+            monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Income',
+                        data: incomeData,
+                        backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                        borderColor: '#4CAF50',
+                        borderWidth: 2
+                    }, {
+                        label: 'Expenses',
+                        data: expenseData,
+                        backgroundColor: 'rgba(244, 67, 54, 0.7)',
+                        borderColor: '#f44336',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Budget Functions
+        function addBudget() {
+            const name = document.getElementById('budgetName').value.trim();
+            const amount = parseFloat(document.getElementById('budgetAmount').value);
+            const category = document.getElementById('budgetCategory').value;
+            const frequency = document.getElementById('budgetFrequency').value;
+
+            if (!name || !amount || amount <= 0) {
+                alert('Please enter a valid budget name and amount.');
+                return;
+            }
+
+            // Check if budget already exists with this name
+            const existingIndex = budgets.findIndex(b => b.name === name);
+            
+            if (existingIndex >= 0) {
+                budgets[existingIndex].amount = amount;
+                budgets[existingIndex].frequency = frequency;
+                budgets[existingIndex].category = category;
+            } else {
+                budgets.push({
+                    id: Date.now(),
+                    name,
+                    amount,
+                    category: category || 'other',
+                    frequency: frequency || 'monthly'
+                });
+            }
+
+            saveBudgets();
+            updateBudgetDisplay();
+            clearBudgetForm();
+        }
+
+        function deleteBudget(id) {
+            budgets = budgets.filter(b => b.id !== id);
+            saveBudgets();
+            updateBudgetDisplay();
+        }
+
+        function saveBudgets() {
+            localStorage.setItem('budgets', JSON.stringify(budgets));
+        }
+
+        function clearBudgetForm() {
+            document.getElementById('budgetName').value = '';
+            document.getElementById('budgetAmount').value = '';
+            document.getElementById('budgetCategory').value = 'other';
+            document.getElementById('budgetFrequency').value = 'monthly';
+        }
+
+        function updateBudgetDisplay() {
+            const list = document.getElementById('budgetList');
+            
+            if (budgets.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999; font-size: 13px; padding: 10px;">No budgets set yet.</p>';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const frequencyLabels = {
+                daily: 'Daily',
+                weekly: 'Weekly',
+                monthly: 'Monthly',
+                yearly: 'Yearly'
+            };
+
+            list.innerHTML = budgets.map(budget => {
+                const frequency = budget.frequency || 'monthly';
+                const budgetCategory = budget.category || 'all';
+                
+                // Calculate date range based on frequency
+                let periodStart, periodEnd;
+                switch(frequency) {
+                    case 'daily':
+                        periodStart = new Date(today);
+                        periodEnd = new Date(today);
+                        periodEnd.setHours(23, 59, 59, 999);
+                        break;
+                    case 'weekly':
+                        const dayOfWeek = today.getDay();
+                        periodStart = new Date(today);
+                        periodStart.setDate(today.getDate() - dayOfWeek);
+                        periodEnd = new Date(periodStart);
+                        periodEnd.setDate(periodStart.getDate() + 6);
+                        periodEnd.setHours(23, 59, 59, 999);
+                        break;
+                    case 'monthly':
+                        periodStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                        periodEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        periodEnd.setHours(23, 59, 59, 999);
+                        break;
+                    case 'yearly':
+                        periodStart = new Date(today.getFullYear(), 0, 1);
+                        periodEnd = new Date(today.getFullYear(), 11, 31);
+                        periodEnd.setHours(23, 59, 59, 999);
+                        break;
+                }
+
+                // Calculate spending for this period for this budget's category
+                const periodExpenses = transactions
+                    .filter(t => t.type === 'expense' && 
+                        (budgetCategory === 'all' || t.category === budgetCategory) &&
+                        new Date(t.date) >= periodStart && 
+                        new Date(t.date) <= periodEnd)
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                // Calculate today's spending for daily budgets
+                const todayEnd = new Date(today);
+                todayEnd.setHours(23, 59, 59, 999);
+                const todaySpending = transactions
+                    .filter(t => t.type === 'expense' && 
+                        (budgetCategory === 'all' || t.category === budgetCategory) &&
+                        new Date(t.date) >= today && 
+                        new Date(t.date) <= todayEnd)
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                // For daily budgets, use today's spending; for others, use period spending
+                const spent = frequency === 'daily' ? todaySpending : periodExpenses;
+                const remaining = Math.max(budget.amount - spent, 0);
+
+                // Percentage for bar width (cap at 100) and label text
+                const rawPercentage = (spent / budget.amount) * 100;
+                const percentage = Math.min(rawPercentage, 100);
+                const overPercentage = spent > budget.amount
+                    ? ((spent - budget.amount) / budget.amount) * 100
+                    : 0;
+
+                let barClass = '';
+                if (percentage >= 100) {
+                    barClass = 'danger';
+                } else if (percentage >= 80) {
+                    barClass = 'warning';
+                }
+
+                // For daily budgets, show "Remaining Today" prominently
+                const dailyRemainingHtml = frequency === 'daily' ? `
+                    <div style="background: rgba(76, 175, 80, 0.1); padding: 12px; border-radius: 8px; margin-top: 10px; text-align: center; border: 2px solid rgba(76, 175, 80, 0.3);">
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Remaining Today</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #4CAF50;">$${remaining.toFixed(2)}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Spent: $${spent.toFixed(2)} / $${budget.amount.toFixed(2)}</div>
+                    </div>
+                ` : '';
+
+                return `
+                    <div class="budget-item">
+                        <div class="budget-header">
+                            <span class="budget-category">${budget.name} ${budgetCategory !== 'all' ? '• ' + budgetCategory.charAt(0).toUpperCase() + budgetCategory.slice(1) : ''}</span>
+                            <span class="budget-amount">$${budget.amount.toFixed(2)} / ${frequencyLabels[frequency]}</span>
+                        </div>
+                        ${dailyRemainingHtml}
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-label">
+                                <span>Spent: $${spent.toFixed(2)}</span>
+                                <span>Remaining: $${remaining.toFixed(2)}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill ${barClass}" style="width: ${percentage}%;">
+                                    ${spent <= budget.amount
+                                        ? (percentage >= 10 ? percentage.toFixed(0) + '%' : '')
+                                        : overPercentage.toFixed(0) + '% over'}
+                                </div>
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteBudget(${budget.id})" style="margin-top: 8px; width: 100%;">Delete Budget</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Goal Functions
+        function addGoal() {
+            const name = document.getElementById('goalName').value.trim();
+            const target = parseFloat(document.getElementById('goalTarget').value);
+
+            if (!name || !target || target <= 0) {
+                alert('Please enter a valid goal name and target amount.');
+                return;
+            }
+
+            goals.push({
+                id: Date.now(),
+                name,
+                target,
+                current: 0
+            });
+
+            saveGoals();
+            updateGoalsDisplay();
+            clearGoalForm();
+        }
+
+        function deleteGoal(id) {
+            goals = goals.filter(g => g.id !== id);
+            saveGoals();
+            updateGoalsDisplay();
+        }
+
+        function saveGoals() {
+            localStorage.setItem('goals', JSON.stringify(goals));
+        }
+
+        function clearGoalForm() {
+            document.getElementById('goalName').value = '';
+            document.getElementById('goalTarget').value = '';
+        }
+
+        function updateGoalsDisplay() {
+            const list = document.getElementById('goalsList');
+            
+            if (goals.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999; font-size: 13px; padding: 10px;">No goals set yet.</p>';
+                return;
+            }
+
+            // Calculate total savings (income - expenses)
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            const monthlyIncome = transactions
+                .filter(t => t.type === 'income' && 
+                    new Date(t.date) >= firstDay && 
+                    new Date(t.date) <= lastDay)
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const monthlyExpenses = transactions
+                .filter(t => t.type === 'expense' && 
+                    new Date(t.date) >= firstDay && 
+                    new Date(t.date) <= lastDay)
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const totalSavings = monthlyIncome - monthlyExpenses;
+
+            list.innerHTML = goals.map(goal => {
+                // Distribute savings proportionally to goals (or you could let user allocate manually)
+                // For now, we'll show progress based on accumulated savings
+                const progress = Math.min((goal.current / goal.target) * 100, 100);
+                const remaining = Math.max(goal.target - goal.current, 0);
+                
+                let barClass = '';
+                if (progress >= 100) {
+                    barClass = ''; // Green (default) for completed goals
+                } else if (progress >= 80) {
+                    barClass = 'warning';
+                }
+
+                return `
+                    <div class="goal-item">
+                        <div class="goal-header">
+                            <span class="goal-name">${goal.name}</span>
+                            <span class="goal-amount">$${goal.current.toFixed(2)} / $${goal.target.toFixed(2)}</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-label">
+                                <span>Saved: $${goal.current.toFixed(2)}</span>
+                                <span>Remaining: $${remaining.toFixed(2)}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill ${barClass}" style="width: ${progress}%;">
+                                    ${progress >= 10 ? progress.toFixed(0) + '%' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <input type="number" id="goalAdd_${goal.id}" placeholder="Add amount" step="0.01" min="0" style="flex: 1; margin: 0;" />
+                            <button onclick="addToGoal(${goal.id})" style="padding: 8px 16px; margin: 0;">Add</button>
+                        </div>
+                        <button class="delete-btn" onclick="deleteGoal(${goal.id})" style="margin-top: 8px; width: 100%;">Delete Goal</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addToGoal(goalId) {
+            const goal = goals.find(g => g.id === goalId);
+            if (!goal) return;
+
+            const input = document.getElementById(`goalAdd_${goalId}`);
+            const amount = parseFloat(input.value);
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount.');
+                return;
+            }
+
+            goal.current = Math.min(goal.current + amount, goal.target);
+            saveGoals();
+            updateGoalsDisplay();
+            input.value = '';
+        }
+
+        // Initialize display on page load
+        updateRecurringIncomeList();
+        updateFilterInfo();
+        updateDisplay();
+    </script>
+</body>
+</html>
