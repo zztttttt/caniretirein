@@ -481,7 +481,10 @@
         <div class="card">
             <h2>Stock Portfolio Tracker</h2>
             <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <button class="refresh-portfolio-btn" onclick="refreshAllStockPrices()">🔄 Refresh Prices</button>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <button class="refresh-portfolio-btn" onclick="refreshAllStockPrices()">🔄 Refresh Prices</button>
+                    <span id="autoRefreshStatus" style="font-size: 12px; color: var(--text-secondary);"></span>
+                </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <input type="text" id="finnhubApiKey" placeholder="Finnhub API Key (optional)" 
                            style="padding: 6px 10px; font-size: 12px; width: 200px; border: 2px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-primary);"
@@ -744,6 +747,11 @@
             await refreshStockPrice(ticker);
             updatePortfolioDisplay();
             clearStockForm();
+            
+            // Restart auto-refresh if it wasn't running
+            if (!autoRefreshInterval && portfolio.length > 0) {
+                startAutoRefresh();
+            }
         }
 
         // Delete stock from portfolio
@@ -753,6 +761,13 @@
                 savePortfolio();
                 updatePortfolioDisplay();
                 updateInvestmentsFromPortfolio();
+                
+                // Stop auto-refresh if no stocks left, otherwise restart it
+                if (portfolio.length === 0) {
+                    stopAutoRefresh();
+                } else if (!autoRefreshInterval) {
+                    startAutoRefresh();
+                }
             }
         }
 
@@ -768,6 +783,12 @@
             updatePortfolioDisplay();
             updateInvestmentsFromPortfolio();
         }
+
+        // Auto-refresh variables
+        let autoRefreshInterval = null;
+        let autoRefreshTimer = null;
+        let nextRefreshTime = null;
+        const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
         // Refresh all stock prices (parallel fetching for speed)
         async function refreshAllStockPrices() {
@@ -795,7 +816,113 @@
             refreshBtn.textContent = '🔄 Refresh Prices';
             updatePortfolioDisplay();
             updateInvestmentsFromPortfolio();
+            
+            // Reset auto-refresh timer after manual refresh
+            resetAutoRefreshTimer();
         }
+
+        // Update auto-refresh status indicator
+        function updateAutoRefreshStatus() {
+            const statusEl = document.getElementById('autoRefreshStatus');
+            if (!statusEl) return;
+            
+            if (!autoRefreshInterval || portfolio.length === 0) {
+                statusEl.textContent = '';
+                return;
+            }
+            
+            if (document.hidden) {
+                statusEl.textContent = '⏸ Auto-refresh paused';
+                return;
+            }
+            
+            if (nextRefreshTime) {
+                const timeUntilRefresh = Math.max(0, nextRefreshTime - Date.now());
+                const minutes = Math.floor(timeUntilRefresh / 60000);
+                const seconds = Math.floor((timeUntilRefresh % 60000) / 1000);
+                
+                if (timeUntilRefresh > 0) {
+                    statusEl.textContent = `⏱ Auto-refresh in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    statusEl.textContent = '🔄 Refreshing...';
+                }
+            } else {
+                statusEl.textContent = '🔄 Auto-refresh enabled';
+            }
+        }
+
+        // Reset auto-refresh timer
+        function resetAutoRefreshTimer() {
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+            }
+            
+            nextRefreshTime = Date.now() + AUTO_REFRESH_INTERVAL;
+            
+            // Update status every second
+            autoRefreshTimer = setInterval(() => {
+                updateAutoRefreshStatus();
+                
+                // Check if it's time to refresh
+                if (nextRefreshTime && Date.now() >= nextRefreshTime) {
+                    if (portfolio.length > 0 && !document.hidden) {
+                        refreshAllStockPrices();
+                    }
+                }
+            }, 1000);
+            
+            updateAutoRefreshStatus();
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh() {
+            // Clear any existing interval
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            // Only start if there are stocks in portfolio
+            if (portfolio.length === 0) {
+                return;
+            }
+            
+            // Set up interval for auto-refresh
+            autoRefreshInterval = setInterval(() => {
+                if (!document.hidden && portfolio.length > 0) {
+                    refreshAllStockPrices();
+                }
+            }, AUTO_REFRESH_INTERVAL);
+            
+            // Set up timer for status updates
+            resetAutoRefreshTimer();
+        }
+
+        // Stop auto-refresh
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+            nextRefreshTime = null;
+            updateAutoRefreshStatus();
+        }
+
+        // Handle page visibility changes (pause when tab is inactive)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Tab is hidden, just update status
+                updateAutoRefreshStatus();
+            } else {
+                // Tab is visible again, resume auto-refresh
+                if (portfolio.length > 0) {
+                    startAutoRefresh();
+                }
+            }
+        });
 
         // Update portfolio display
         function updatePortfolioDisplay() {
@@ -1199,6 +1326,11 @@
             setTimeout(() => {
                 refreshAllStockPrices();
             }, 500); // Small delay to let page render first
+            
+            // Start auto-refresh after initial load
+            setTimeout(() => {
+                startAutoRefresh();
+            }, 1000);
         }
         
         updateChart();

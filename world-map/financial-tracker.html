@@ -424,6 +424,70 @@
             font-weight: 700;
         }
 
+        #spendingInsightsContent {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .insight-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        [data-theme="dark"] .insight-item {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .insight-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .insight-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .insight-value.positive {
+            color: #4CAF50;
+        }
+
+        .insight-value.negative {
+            color: #f44336;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .category-item:last-child {
+            border-bottom: none;
+        }
+
+        .category-name {
+            font-size: 14px;
+            text-transform: capitalize;
+            color: white;
+            opacity: 0.9;
+        }
+
+        .category-amount {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
         .transaction-list {
             max-height: 300px;
             overflow-y: auto;
@@ -846,6 +910,25 @@
                     <div class="summary-item">
                         <div class="summary-item-label">Monthly Savings Rate</div>
                         <div class="summary-item-value" id="savingsRate">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spending Insights Card -->
+            <div class="card summary-card" id="spendingInsightsCard">
+                <h2>Spending Insights</h2>
+                <div id="spendingInsightsContent">
+                    <div class="insight-item">
+                        <div class="insight-label">Month-over-Month</div>
+                        <div class="insight-value" id="monthComparison">-</div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-label">Average Daily Spending</div>
+                        <div class="insight-value" id="avgDailySpending">-</div>
+                    </div>
+                    <div class="insight-item" style="grid-column: 1 / -1;">
+                        <div class="insight-label" style="margin-bottom: 10px;">Top Spending Categories</div>
+                        <div id="topCategories">-</div>
                     </div>
                 </div>
             </div>
@@ -1982,6 +2065,7 @@
             updateSummary();
             updateTransactionList();
             updateCharts();
+            updateSpendingInsights();
             updateBudgetDisplay();
             updateGoalsDisplay();
             updateNetWorthUI();
@@ -2106,6 +2190,96 @@
 
         function formatCurrency(amount) {
             return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // ---------- Spending Insights ----------
+        function updateSpendingInsights() {
+            const insightsCard = document.getElementById('spendingInsightsCard');
+            if (!insightsCard) return;
+
+            // Get current month expenses
+            const today = new Date();
+            const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            const currentMonthExpenses = transactions
+                .filter(t => t.type === 'expense' && 
+                    new Date(t.date) >= currentMonthStart && 
+                    new Date(t.date) <= currentMonthEnd)
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            // Get previous month expenses
+            const previousMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+            
+            const previousMonthExpenses = transactions
+                .filter(t => t.type === 'expense' && 
+                    new Date(t.date) >= previousMonthStart && 
+                    new Date(t.date) <= previousMonthEnd)
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            // Calculate month-over-month comparison
+            const monthComparisonEl = document.getElementById('monthComparison');
+            if (previousMonthExpenses > 0) {
+                const difference = currentMonthExpenses - previousMonthExpenses;
+                const percentChange = ((difference / previousMonthExpenses) * 100);
+                const isIncrease = difference > 0;
+                
+                if (Math.abs(percentChange) < 0.1) {
+                    monthComparisonEl.textContent = 'About the same as last month';
+                    monthComparisonEl.className = 'insight-value';
+                } else {
+                    const changeText = Math.abs(percentChange).toFixed(1) + '% ' + (isIncrease ? 'more' : 'less');
+                    monthComparisonEl.textContent = `You spent ${changeText} this month than last`;
+                    monthComparisonEl.className = 'insight-value ' + (isIncrease ? 'negative' : 'positive');
+                }
+            } else if (currentMonthExpenses > 0) {
+                monthComparisonEl.textContent = 'First month tracking';
+                monthComparisonEl.className = 'insight-value';
+            } else {
+                monthComparisonEl.textContent = 'No spending data yet';
+                monthComparisonEl.className = 'insight-value';
+            }
+
+            // Calculate average daily spending for current month
+            const avgDailySpendingEl = document.getElementById('avgDailySpending');
+            const daysInMonth = today.getDate(); // Days elapsed in current month
+            if (daysInMonth > 0 && currentMonthExpenses > 0) {
+                const avgDaily = currentMonthExpenses / daysInMonth;
+                avgDailySpendingEl.textContent = formatCurrency(avgDaily) + ' per day';
+                avgDailySpendingEl.className = 'insight-value';
+            } else {
+                avgDailySpendingEl.textContent = 'No data yet';
+                avgDailySpendingEl.className = 'insight-value';
+            }
+
+            // Calculate top spending categories (current month)
+            const topCategoriesEl = document.getElementById('topCategories');
+            const categoryTotals = {};
+            
+            transactions
+                .filter(t => t.type === 'expense' && 
+                    new Date(t.date) >= currentMonthStart && 
+                    new Date(t.date) <= currentMonthEnd)
+                .forEach(t => {
+                    const category = t.category || 'other';
+                    categoryTotals[category] = (categoryTotals[category] || 0) + t.amount;
+                });
+
+            const sortedCategories = Object.entries(categoryTotals)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5); // Top 5 categories
+
+            if (sortedCategories.length > 0) {
+                topCategoriesEl.innerHTML = sortedCategories.map(([category, amount]) => `
+                    <div class="category-item">
+                        <span class="category-name">${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+                        <span class="category-amount">${formatCurrency(amount)}</span>
+                    </div>
+                `).join('');
+            } else {
+                topCategoriesEl.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; padding: 10px;">No spending data for this month yet</div>';
+            }
         }
 
         // ---------- Net Worth ----------
