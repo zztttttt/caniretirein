@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Net Worth Tracker - Can I Retire In?</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #eef4ff 0%, #f7fbff 100%);
+            --bg-secondary: white;
+            --bg-card: white;
+            --bg-header: linear-gradient(135deg, #f5f9ff 0%, #e4efff 100%);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-header: #1a3760;
+            --text-link: #2a6599;
+            --border-color: #e0e0e0;
+            --input-bg: #fafafa;
+            --shadow: rgba(0,0,0,0.1);
+            --shadow-light: rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-secondary: #0f1419;
+            --bg-card: #1e293b;
+            --bg-header: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-header: #e2e8f0;
+            --text-link: #60a5fa;
+            --border-color: #334155;
+            --input-bg: #1e293b;
+            --shadow: rgba(0,0,0,0.3);
+            --shadow-light: rgba(0,0,0,0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .page-header {
+            background: var(--bg-header);
+            color: var(--text-header);
+            padding: 32px 20px;
+            text-align: center;
+            box-shadow: 0 2px 12px var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            width: 50px;
+            height: 26px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--text-link);
+        }
+
+        .theme-toggle-slider {
+            width: 20px;
+            height: 20px;
+            background: var(--text-link);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            transform: translateX(0);
+        }
+
+        [data-theme="dark"] .theme-toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .theme-toggle-icon {
+            position: absolute;
+            font-size: 14px;
+            transition: opacity 0.3s ease;
+            color: var(--text-link);
+        }
+
+        .theme-toggle-icon.sun {
+            left: 6px;
+            opacity: 1;
+        }
+
+        .theme-toggle-icon.moon {
+            right: 6px;
+            opacity: 0;
+        }
+
+        [data-theme="dark"] .theme-toggle-icon.sun {
+            opacity: 0;
+        }
+
+        [data-theme="dark"] .theme-toggle-icon.moon {
+            opacity: 1;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        .page-header .tagline {
+            margin: 10px 0 0;
+            font-size: 17px;
+            opacity: 0.9;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .nav-links {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            background: rgba(96, 165, 250, 0.1);
+            color: var(--text-link);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(96, 165, 250, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px var(--shadow-light);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card h2 {
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-link);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .summary-item {
+            background: var(--input-bg);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--text-link);
+            transition: background 0.3s ease;
+        }
+
+        .summary-item-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .summary-item-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .summary-item-value.positive {
+            color: #4CAF50;
+        }
+
+        .summary-item-value.negative {
+            color: #f44336;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        input[type="number"],
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease, background 0.3s ease;
+            margin-bottom: 12px;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: var(--text-link);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: var(--text-link);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        button.secondary {
+            background: var(--text-secondary);
+        }
+
+        button.danger {
+            background: #f44336;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .snapshot-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .chart-container {
+            margin-top: 24px;
+            position: relative;
+            height: 300px;
+        }
+
+        .snapshot-list {
+            margin-top: 16px;
+        }
+
+        .snapshot-item {
+            background: var(--input-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--text-link);
+        }
+
+        .snapshot-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .snapshot-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .snapshot-value.positive {
+            color: #4CAF50;
+        }
+
+        .snapshot-value.negative {
+            color: #f44336;
+        }
+
+        .delete-snapshot {
+            padding: 4px 8px;
+            font-size: 11px;
+            background: #f44336;
+        }
+
+        .portfolio-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: end;
+        }
+
+        .portfolio-list {
+            margin-top: 16px;
+        }
+
+        .portfolio-item {
+            background: var(--input-bg);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            gap: 16px;
+            align-items: center;
+            border-left: 4px solid var(--text-link);
+        }
+
+        .portfolio-ticker {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .portfolio-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .portfolio-detail-row {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .portfolio-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .portfolio-gain {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .portfolio-gain.positive {
+            color: #4CAF50;
+        }
+
+        .portfolio-gain.negative {
+            color: #f44336;
+        }
+
+        .portfolio-loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .refresh-portfolio-btn {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .portfolio-form {
+                grid-template-columns: 1fr;
+            }
+
+            .portfolio-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .portfolio-value,
+            .portfolio-gain {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span class="theme-toggle-icon sun">☀️</span>
+            <span class="theme-toggle-icon moon">🌙</span>
+            <div class="theme-toggle-slider"></div>
+        </button>
+        <h1>Net Worth Tracker</h1>
+        <div class="tagline">Track your assets, liabilities, and net worth over time</div>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">← Retirement Calculator</a>
+            <a href="financial-tracker.html" class="nav-link">Financial Tracker →</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Net Worth Summary Card -->
+        <div class="card">
+            <h2>Net Worth Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-item-label">Total Assets</div>
+                    <div class="summary-item-value" id="totalAssets">$0.00</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-item-label">Total Liabilities</div>
+                    <div class="summary-item-value" id="totalLiabilities">$0.00</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-item-label">Net Worth</div>
+                    <div class="summary-item-value" id="netWorthValue">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Tracker Card -->
+        <div class="card">
+            <h2>Stock Portfolio Tracker</h2>
+            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <button class="refresh-portfolio-btn" onclick="refreshAllStockPrices()">🔄 Refresh Prices</button>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <input type="text" id="finnhubApiKey" placeholder="Finnhub API Key (optional)" 
+                           style="padding: 6px 10px; font-size: 12px; width: 200px; border: 2px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-primary);"
+                           onchange="saveApiKey()" />
+                    <div style="font-size: 11px; color: var(--text-secondary);">
+                        <a href="https://finnhub.io/register" target="_blank" style="color: var(--text-link);">Get free key</a>
+                    </div>
+                </div>
+            </div>
+            <div class="portfolio-form">
+                <div>
+                    <label for="stockTicker">Stock Ticker (e.g., AAPL, MSFT, GOOGL):</label>
+                    <input type="text" id="stockTicker" placeholder="AAPL" style="text-transform: uppercase;" />
+                </div>
+                <div>
+                    <label for="stockQuantity">Quantity:</label>
+                    <input type="number" id="stockQuantity" placeholder="10" step="1" min="0" />
+                </div>
+                <div>
+                    <label for="stockPurchasePrice">Purchase Price ($):</label>
+                    <input type="number" id="stockPurchasePrice" placeholder="150.00" step="0.01" min="0" />
+                </div>
+                <div>
+                    <button onclick="addStock()">Add Stock</button>
+                </div>
+            </div>
+            <div class="portfolio-list" id="portfolioList">
+                <p style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">
+                    No stocks added yet. Add stocks to track your portfolio value.
+                </p>
+            </div>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border-color);">
+                <div class="summary-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="summary-item">
+                        <div class="summary-item-label">Total Portfolio Value</div>
+                        <div class="summary-item-value" id="portfolioTotalValue">$0.00</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-label">Total Cost Basis</div>
+                        <div class="summary-item-value" id="portfolioCostBasis">$0.00</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-label">Total Gain/Loss</div>
+                        <div class="summary-item-value" id="portfolioGainLoss">$0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assets & Liabilities Input Card -->
+        <div class="card">
+            <h2>Assets & Liabilities</h2>
+            <div class="input-grid">
+                <div>
+                    <h3>Assets</h3>
+                    <label for="nwCash">Cash & Accounts:</label>
+                    <input type="number" id="nwCash" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                    
+                    <label for="nwInvestments">Investments:</label>
+                    <input type="number" id="nwInvestments" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                    
+                    <label for="nwProperty">Property & Real Estate:</label>
+                    <input type="number" id="nwProperty" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                    
+                    <label for="nwOtherAssets">Other Assets:</label>
+                    <input type="number" id="nwOtherAssets" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                </div>
+                <div>
+                    <h3>Liabilities</h3>
+                    <label for="nwCreditCards">Credit Cards:</label>
+                    <input type="number" id="nwCreditCards" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                    
+                    <label for="nwLoans">Loans / Mortgage:</label>
+                    <input type="number" id="nwLoans" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                    
+                    <label for="nwOtherLiabilities">Other Liabilities:</label>
+                    <input type="number" id="nwOtherLiabilities" placeholder="0.00" step="0.01" min="0" oninput="updateNetWorthFromInputs()" />
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button onclick="saveSnapshot()">Save Snapshot</button>
+            </div>
+        </div>
+
+        <!-- Net Worth Over Time Chart -->
+        <div class="card">
+            <h2>Net Worth Over Time</h2>
+            <div class="chart-container">
+                <canvas id="netWorthChart"></canvas>
+                <div id="chartNoData" style="display: none; text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <p>No data yet. Add assets/liabilities above to see your current net worth.</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Save snapshots to track changes over time.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Snapshots -->
+        <div class="card">
+            <h2>Historical Snapshots</h2>
+            <div class="snapshot-list" id="snapshotList">
+                <p style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">
+                    No snapshots yet. Save a snapshot to track your net worth over time.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Management
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Net Worth Data
+        let netWorth = JSON.parse(localStorage.getItem('netWorth')) || {
+            cash: 0,
+            investments: 0,
+            property: 0,
+            otherAssets: 0,
+            creditCards: 0,
+            loans: 0,
+            otherLiabilities: 0
+        };
+
+        let snapshots = JSON.parse(localStorage.getItem('netWorthSnapshots')) || [];
+        let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
+        let finnhubApiKey = localStorage.getItem('finnhubApiKey') || 'demo';
+
+        // Chart
+        let netWorthChart = null;
+
+        // Format Currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // ---------- Portfolio Functions ----------
+        
+        // Fetch stock price using multiple methods with CORS proxy
+        async function fetchStockPrice(ticker) {
+            const tickerUpper = ticker.toUpperCase();
+            
+            // Method 1: Try Yahoo Finance with CORS proxy
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                // Using allorigins.win as CORS proxy
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${tickerUpper}?interval=1d&range=1d`)}`;
+                
+                const response = await fetch(proxyUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error('Proxy request failed');
+                
+                const proxyData = await response.json();
+                const data = JSON.parse(proxyData.contents);
+                
+                if (data.chart && data.chart.result && data.chart.result[0]) {
+                    const result = data.chart.result[0];
+                    const price = result.meta?.regularMarketPrice || result.meta?.previousClose;
+                    if (price) return price;
+                }
+            } catch (error) {
+                console.log(`Method 1 failed for ${ticker}:`, error.message);
+            }
+            
+            // Method 2: Try alternative CORS proxy with different endpoint
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query2.finance.yahoo.com/v10/finance/quoteSummary/${tickerUpper}?modules=price`)}`;
+                
+                const response = await fetch(proxyUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error('Proxy request failed');
+                
+                const proxyData = await response.json();
+                const altData = JSON.parse(proxyData.contents);
+                
+                if (altData.quoteSummary && altData.quoteSummary.result && altData.quoteSummary.result[0]) {
+                    const price = altData.quoteSummary.result[0].price?.regularMarketPrice?.raw || 
+                                 altData.quoteSummary.result[0].price?.regularMarketPrice;
+                    if (price) return price;
+                }
+            } catch (error) {
+                console.log(`Method 2 failed for ${ticker}:`, error.message);
+            }
+            
+            // Method 3: Try Finnhub (free tier, uses API key from localStorage or demo)
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const apiKey = finnhubApiKey || 'demo';
+                const finnhubUrl = `https://finnhub.io/api/v1/quote?symbol=${tickerUpper}&token=${apiKey}`;
+                const response = await fetch(finnhubUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.c && data.c > 0) { // c = current price
+                        return data.c;
+                    }
+                }
+            } catch (error) {
+                console.log(`Method 3 failed for ${ticker}:`, error.message);
+            }
+            
+            console.error(`All methods failed for ${ticker}`);
+            return null;
+        }
+
+        // Add stock to portfolio
+        async function addStock() {
+            const ticker = document.getElementById('stockTicker').value.trim().toUpperCase();
+            const quantity = parseFloat(document.getElementById('stockQuantity').value);
+            const purchasePrice = parseFloat(document.getElementById('stockPurchasePrice').value);
+
+            if (!ticker || !quantity || quantity <= 0 || !purchasePrice || purchasePrice <= 0) {
+                alert('Please enter a valid ticker, quantity, and purchase price.');
+                return;
+            }
+
+            // Check if stock already exists
+            const existingIndex = portfolio.findIndex(s => s.ticker === ticker);
+            
+            if (existingIndex >= 0) {
+                // Update existing stock (add to quantity)
+                portfolio[existingIndex].quantity += quantity;
+                // Update average purchase price
+                const totalCost = (portfolio[existingIndex].quantity - quantity) * portfolio[existingIndex].purchasePrice + quantity * purchasePrice;
+                portfolio[existingIndex].purchasePrice = totalCost / portfolio[existingIndex].quantity;
+            } else {
+                // Add new stock
+                portfolio.push({
+                    id: Date.now(),
+                    ticker,
+                    quantity,
+                    purchasePrice,
+                    currentPrice: null,
+                    lastUpdated: null
+                });
+            }
+
+            savePortfolio();
+            await refreshStockPrice(ticker);
+            updatePortfolioDisplay();
+            clearStockForm();
+        }
+
+        // Delete stock from portfolio
+        function deleteStock(id) {
+            if (confirm('Are you sure you want to remove this stock from your portfolio?')) {
+                portfolio = portfolio.filter(s => s.id !== id);
+                savePortfolio();
+                updatePortfolioDisplay();
+                updateInvestmentsFromPortfolio();
+            }
+        }
+
+        // Refresh price for a specific stock
+        async function refreshStockPrice(ticker) {
+            const stock = portfolio.find(s => s.ticker === ticker);
+            if (!stock) return;
+
+            const price = await fetchStockPrice(ticker);
+            stock.currentPrice = price;
+            stock.lastUpdated = new Date().toISOString();
+            savePortfolio();
+            updatePortfolioDisplay();
+            updateInvestmentsFromPortfolio();
+        }
+
+        // Refresh all stock prices (parallel fetching for speed)
+        async function refreshAllStockPrices() {
+            const refreshBtn = document.querySelector('.refresh-portfolio-btn');
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = '🔄 Refreshing...';
+
+            // Update display immediately to show we're refreshing
+            updatePortfolioDisplay();
+
+            // Fetch all prices in parallel for speed
+            const pricePromises = portfolio.map(async (stock) => {
+                const price = await fetchStockPrice(stock.ticker);
+                stock.currentPrice = price;
+                stock.lastUpdated = new Date().toISOString();
+                // Update display after each price is fetched (for progressive loading)
+                updatePortfolioDisplay();
+                updateInvestmentsFromPortfolio();
+            });
+
+            await Promise.all(pricePromises);
+            savePortfolio();
+
+            refreshBtn.disabled = false;
+            refreshBtn.textContent = '🔄 Refresh Prices';
+            updatePortfolioDisplay();
+            updateInvestmentsFromPortfolio();
+        }
+
+        // Update portfolio display
+        function updatePortfolioDisplay() {
+            const list = document.getElementById('portfolioList');
+            
+            if (portfolio.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">No stocks added yet. Add stocks to track your portfolio value.</p>';
+                document.getElementById('portfolioTotalValue').textContent = formatCurrency(0);
+                document.getElementById('portfolioCostBasis').textContent = formatCurrency(0);
+                document.getElementById('portfolioGainLoss').textContent = formatCurrency(0);
+                return;
+            }
+
+            let totalValue = 0;
+            let totalCostBasis = 0;
+
+            list.innerHTML = portfolio.map(stock => {
+                const costBasis = stock.quantity * stock.purchasePrice;
+                const currentValue = stock.currentPrice ? stock.quantity * stock.currentPrice : costBasis;
+                const gainLoss = currentValue - costBasis;
+                const gainLossPercent = stock.purchasePrice > 0 ? ((gainLoss / costBasis) * 100) : 0;
+
+                totalValue += currentValue;
+                totalCostBasis += costBasis;
+
+                const lastUpdated = stock.lastUpdated 
+                    ? new Date(stock.lastUpdated).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : 'Never';
+
+                // Show cached price if available, otherwise show loading or use purchase price as placeholder
+                let priceDisplay;
+                if (stock.currentPrice) {
+                    priceDisplay = formatCurrency(stock.currentPrice);
+                } else if (stock.lastUpdated) {
+                    // Has been updated before but price is null (error fetching)
+                    priceDisplay = '<span style="color: var(--text-secondary);">Error fetching</span>';
+                } else {
+                    // Never fetched, show purchase price as placeholder
+                    priceDisplay = `<span style="color: var(--text-secondary);">${formatCurrency(stock.purchasePrice)} (est.)</span>`;
+                }
+
+                const valueClass = gainLoss >= 0 ? 'positive' : 'negative';
+
+                return `
+                    <div class="portfolio-item ${!stock.currentPrice ? 'portfolio-loading' : ''}">
+                        <div class="portfolio-ticker">${stock.ticker}</div>
+                        <div class="portfolio-details">
+                            <div class="portfolio-detail-row">Quantity: ${stock.quantity}</div>
+                            <div class="portfolio-detail-row">Avg Price: ${formatCurrency(stock.purchasePrice)}</div>
+                            <div class="portfolio-detail-row">Current: ${priceDisplay} • Updated: ${lastUpdated}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="portfolio-value">${formatCurrency(currentValue)}</div>
+                            <div class="portfolio-gain ${valueClass}">
+                                ${gainLoss >= 0 ? '+' : ''}${formatCurrency(gainLoss)} (${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(2)}%)
+                            </div>
+                        </div>
+                        <button onclick="refreshStockPrice('${stock.ticker}').then(() => updatePortfolioDisplay()).then(() => updateInvestmentsFromPortfolio())" style="padding: 6px 12px; font-size: 12px;">Refresh</button>
+                        <button class="danger" onclick="deleteStock(${stock.id})" style="padding: 6px 12px; font-size: 12px;">Delete</button>
+                    </div>
+                `;
+            }).join('');
+
+            const totalGainLoss = totalValue - totalCostBasis;
+            const totalGainLossClass = totalGainLoss >= 0 ? 'positive' : 'negative';
+
+            document.getElementById('portfolioTotalValue').textContent = formatCurrency(totalValue);
+            document.getElementById('portfolioCostBasis').textContent = formatCurrency(totalCostBasis);
+            const gainLossEl = document.getElementById('portfolioGainLoss');
+            gainLossEl.textContent = formatCurrency(totalGainLoss);
+            gainLossEl.className = 'summary-item-value ' + totalGainLossClass;
+        }
+
+        // Update Investments field from portfolio value
+        function updateInvestmentsFromPortfolio() {
+            const totalPortfolioValue = portfolio.reduce((sum, stock) => {
+                const currentValue = stock.currentPrice ? stock.quantity * stock.currentPrice : stock.quantity * stock.purchasePrice;
+                return sum + currentValue;
+            }, 0);
+
+            // Update the investments input field
+            document.getElementById('nwInvestments').value = totalPortfolioValue.toFixed(2);
+            updateNetWorthFromInputs();
+        }
+
+        // Save portfolio
+        function savePortfolio() {
+            localStorage.setItem('portfolio', JSON.stringify(portfolio));
+        }
+
+        // Clear stock form
+        function clearStockForm() {
+            document.getElementById('stockTicker').value = '';
+            document.getElementById('stockQuantity').value = '';
+            document.getElementById('stockPurchasePrice').value = '';
+        }
+
+        // Save API key
+        function saveApiKey() {
+            const key = document.getElementById('finnhubApiKey').value.trim();
+            finnhubApiKey = key || 'demo';
+            localStorage.setItem('finnhubApiKey', finnhubApiKey);
+        }
+
+        // Update Net Worth from Inputs
+        function updateNetWorthFromInputs() {
+            const num = (id) => parseFloat(document.getElementById(id).value) || 0;
+
+            netWorth.cash = num('nwCash');
+            netWorth.investments = num('nwInvestments');
+            netWorth.property = num('nwProperty');
+            netWorth.otherAssets = num('nwOtherAssets');
+            netWorth.creditCards = num('nwCreditCards');
+            netWorth.loans = num('nwLoans');
+            netWorth.otherLiabilities = num('nwOtherLiabilities');
+
+            saveNetWorth();
+            updateNetWorthUI();
+        }
+
+        // Save Net Worth
+        function saveNetWorth() {
+            localStorage.setItem('netWorth', JSON.stringify(netWorth));
+        }
+
+        // Update UI
+        function updateNetWorthUI() {
+            const totalAssets = (netWorth.cash || 0) +
+                (netWorth.investments || 0) +
+                (netWorth.property || 0) +
+                (netWorth.otherAssets || 0);
+
+            const totalLiabilities = (netWorth.creditCards || 0) +
+                (netWorth.loans || 0) +
+                (netWorth.otherLiabilities || 0);
+
+            const net = totalAssets - totalLiabilities;
+
+            document.getElementById('totalAssets').textContent = formatCurrency(totalAssets);
+            document.getElementById('totalLiabilities').textContent = formatCurrency(totalLiabilities);
+            
+            const netWorthEl = document.getElementById('netWorthValue');
+            netWorthEl.textContent = formatCurrency(net);
+            netWorthEl.className = 'summary-item-value ' + (net >= 0 ? 'positive' : 'negative');
+
+            // Load values into inputs
+            document.getElementById('nwCash').value = netWorth.cash || '';
+            
+            // If portfolio exists, use portfolio value; otherwise use manual investments value
+            const portfolioValue = portfolio.reduce((sum, stock) => {
+                const currentValue = stock.currentPrice ? stock.quantity * stock.currentPrice : stock.quantity * stock.purchasePrice;
+                return sum + currentValue;
+            }, 0);
+            
+            if (portfolio.length > 0 && portfolioValue > 0) {
+                document.getElementById('nwInvestments').value = portfolioValue.toFixed(2);
+                // Update netWorth.investments to match portfolio
+                netWorth.investments = portfolioValue;
+                saveNetWorth();
+            } else {
+                document.getElementById('nwInvestments').value = netWorth.investments || '';
+            }
+            
+            document.getElementById('nwProperty').value = netWorth.property || '';
+            document.getElementById('nwOtherAssets').value = netWorth.otherAssets || '';
+            document.getElementById('nwCreditCards').value = netWorth.creditCards || '';
+            document.getElementById('nwLoans').value = netWorth.loans || '';
+            document.getElementById('nwOtherLiabilities').value = netWorth.otherLiabilities || '';
+
+            updateChart();
+        }
+
+        // Save Snapshot
+        function saveSnapshot() {
+            const totalAssets = (netWorth.cash || 0) +
+                (netWorth.investments || 0) +
+                (netWorth.property || 0) +
+                (netWorth.otherAssets || 0);
+
+            const totalLiabilities = (netWorth.creditCards || 0) +
+                (netWorth.loans || 0) +
+                (netWorth.otherLiabilities || 0);
+
+            const net = totalAssets - totalLiabilities;
+
+            if (net === 0 && totalAssets === 0 && totalLiabilities === 0) {
+                alert('Please enter some values before saving a snapshot.');
+                return;
+            }
+
+            const snapshot = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                cash: netWorth.cash || 0,
+                investments: netWorth.investments || 0,
+                property: netWorth.property || 0,
+                otherAssets: netWorth.otherAssets || 0,
+                creditCards: netWorth.creditCards || 0,
+                loans: netWorth.loans || 0,
+                otherLiabilities: netWorth.otherLiabilities || 0,
+                totalAssets,
+                totalLiabilities,
+                netWorth: net
+            };
+
+            snapshots.push(snapshot);
+            snapshots.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            saveSnapshots();
+            updateSnapshotDisplay();
+            updateChart();
+        }
+
+        // Save Snapshots
+        function saveSnapshots() {
+            localStorage.setItem('netWorthSnapshots', JSON.stringify(snapshots));
+        }
+
+        // Delete Snapshot
+        function deleteSnapshot(id) {
+            if (confirm('Are you sure you want to delete this snapshot?')) {
+                snapshots = snapshots.filter(s => s.id !== id);
+                saveSnapshots();
+                updateSnapshotDisplay();
+                updateChart();
+            }
+        }
+
+        // Update Snapshot Display
+        function updateSnapshotDisplay() {
+            const list = document.getElementById('snapshotList');
+            
+            if (snapshots.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">No snapshots yet. Save a snapshot to track your net worth over time.</p>';
+                return;
+            }
+
+            list.innerHTML = snapshots.slice().reverse().map(snapshot => {
+                const date = new Date(snapshot.date);
+                const dateStr = date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const valueClass = snapshot.netWorth >= 0 ? 'positive' : 'negative';
+                
+                return `
+                    <div class="snapshot-item">
+                        <div>
+                            <div class="snapshot-date">${dateStr}</div>
+                            <div class="snapshot-value ${valueClass}">${formatCurrency(snapshot.netWorth)}</div>
+                        </div>
+                        <button class="delete-snapshot" onclick="deleteSnapshot(${snapshot.id})">Delete</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Chart
+        function updateChart() {
+            const ctx = document.getElementById('netWorthChart');
+            if (!ctx) return;
+
+            // Calculate current net worth
+            const totalAssets = (netWorth.cash || 0) +
+                (netWorth.investments || 0) +
+                (netWorth.property || 0) +
+                (netWorth.otherAssets || 0);
+            const totalLiabilities = (netWorth.creditCards || 0) +
+                (netWorth.loans || 0) +
+                (netWorth.otherLiabilities || 0);
+            const currentNet = totalAssets - totalLiabilities;
+
+            // Build chart data from snapshots
+            let chartData = snapshots.map(s => ({
+                x: new Date(s.date),
+                y: s.netWorth
+            }));
+
+            // If no snapshots, show current net worth as starting point
+            if (chartData.length === 0 && currentNet !== 0) {
+                chartData.push({
+                    x: new Date(),
+                    y: currentNet
+                });
+            } else if (chartData.length > 0) {
+                // Add current net worth if different from last snapshot
+                const lastSnapshot = snapshots[snapshots.length - 1];
+                if (Math.abs(currentNet - lastSnapshot.netWorth) > 0.01) {
+                    chartData.push({
+                        x: new Date(),
+                        y: currentNet
+                    });
+                }
+            }
+
+            if (netWorthChart) {
+                netWorthChart.destroy();
+            }
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#e2e8f0' : '#333';
+            const gridColor = isDark ? '#334155' : '#e0e0e0';
+
+            // Show/hide no data message
+            const noDataMsg = document.getElementById('chartNoData');
+            if (chartData.length === 0) {
+                if (noDataMsg) noDataMsg.style.display = 'block';
+                if (netWorthChart) {
+                    netWorthChart.destroy();
+                    netWorthChart = null;
+                }
+                return;
+            }
+            if (noDataMsg) noDataMsg.style.display = 'none';
+
+            netWorthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Net Worth',
+                        data: chartData,
+                        borderColor: '#60a5fa',
+                        backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: chartData.length === 1 ? 6 : 3,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: textColor
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Net Worth: ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: chartData.length === 1 ? 'day' : 'day',
+                                displayFormats: {
+                                    day: 'MMM d, yyyy',
+                                    hour: 'MMM d, h:mm a'
+                                }
+                            },
+                            ticks: {
+                                color: textColor,
+                                maxTicksLimit: chartData.length === 1 ? 1 : 10
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: textColor,
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        // Load API key
+        if (document.getElementById('finnhubApiKey')) {
+            document.getElementById('finnhubApiKey').value = finnhubApiKey === 'demo' ? '' : finnhubApiKey;
+        }
+        
+        updateNetWorthUI();
+        updateSnapshotDisplay();
+        updatePortfolioDisplay(); // Show portfolio immediately with cached prices
+        
+        // Load stock prices on page load (if portfolio exists) - do this asynchronously
+        if (portfolio.length > 0) {
+            // Show portfolio first, then refresh prices in background
+            setTimeout(() => {
+                refreshAllStockPrices();
+            }, 500); // Small delay to let page render first
+        }
+        
+        updateChart();
+
+        // Update chart when theme changes
+        const observer = new MutationObserver(() => {
+            updateChart();
+        });
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+    </script>
+</body>
+</html>
