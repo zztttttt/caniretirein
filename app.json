@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Can I Retire In?",
+    "slug": "can-i-retire-in",
+    "version": "1.0.1",
+    "extra": {
+      "eas": {
+        "projectId": "4f78a1e4-0a1e-427c-9b7a-35d3839f2ab9"
+      }
+    },
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#2a6599"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.caniretirein.app",
+      "infoPlist": {
+        "UIStatusBarHidden": true,
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2a6599"
+      },
+      "package": "com.caniretirein.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
